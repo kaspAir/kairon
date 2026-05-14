@@ -1,0 +1,38 @@
+services:
+  kairon-db:
+    image: postgres:16
+    container_name: kairon-db-int
+    environment:
+      POSTGRES_DB: kairon
+      POSTGRES_USER: kairon
+      POSTGRES_PASSWORD: kairon_int_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - kairon_db_data:/var/lib/postgresql/data
+
+  kairon-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kairon-app-int
+    environment:
+      FLASK_ENV: integration
+      DATABASE_URL: postgresql://kairon:kairon_int_password@kairon-db:5432/kairon
+    ports:
+      - "5000:5000"
+    depends_on:
+      - kairon-db
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: kairon-jenkins
+    ports:
+      - "8082:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+volumes:
+  kairon_db_data:
+  jenkins_home:
