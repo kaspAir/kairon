@@ -4,25 +4,32 @@
 <section>
   <div class="eyebrow">Compare View</div>
   <div class="toolbar">
-    <div><h1>Varianten und Szenarien vergleichen</h1><p class="lead">Die Compare View stellt Entscheidungsgrundlagen tabellarisch gegenüber: Kosten, Nutzen, Simulation, Impact, Risiko, Confidence und Governance Status.</p></div>
+    <div><h1>Entscheidungsdeltas vergleichen</h1><p class="lead">Die Compare View stellt Varianten und Szenarien gegenüber. Im Fokus stehen Kosten, Nutzen, Risikoindikatoren, Confidence, Simulation Status und Governance Status — ohne Chart-Überladung.</p></div>
     <a class="btn ghost" href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}">Zurück zum Workspace</a>
   </div>
 </section>
 
 {% if comparison_rows %}
-<div class="table-wrap section"><table>
-  <thead><tr><th>Variante</th><th>Szenario</th><th>Geschätzte Kosten</th><th>Erwarteter Nutzen</th><th>Simulation</th><th>Impact Assessment</th><th>Risk Assessment</th><th>Confidence</th><th>Governance Status</th><th>Aktion</th></tr></thead>
+<section class="compare-summary grid three section" aria-label="Compare Orientierung">
+  <div class="card compact"><h3>Varianten</h3><div class="metric-value">{{ decision.variants|length }}</div><p class="muted">Zu vergleichende Handlungsoptionen.</p></div>
+  <div class="card compact"><h3>Szenarien</h3><div class="metric-value">{{ decision.scenarios|length }}</div><p class="muted">Kontextvarianten und Annahmensets im MVP.</p></div>
+  <div class="card compact"><h3>Governance</h3>{% set status = governance_status %}{% include 'components/status_badge.html' %}<p class="muted">Aktueller Entscheidungszustand.</p></div>
+</section>
+
+<div class="table-wrap section compare-table"><table>
+  <thead><tr><th>Variante</th><th>Szenario</th><th>Kosten</th><th>Nutzen</th><th>Delta</th><th>Risiko</th><th>Confidence</th><th>Simulation</th><th>Impact Assessment</th><th>Governance</th><th>Aktion</th></tr></thead>
   <tbody>
     {% for row in comparison_rows %}
     <tr>
-      <td><strong>{{ row.variant.name }}</strong><br><span class="muted">{{ row.variant.description or '' }}</span></td>
-      <td>{% if row.scenario %}<strong>{{ row.scenario.name }}</strong><br><span class="muted">{{ row.scenario.case_volume }} Fälle · {{ row.scenario.processing_minutes_per_case }} Min/Fall</span>{% else %}<span class="muted">No scenario yet</span>{% endif %}</td>
-      <td>{{ '%.2f'|format(row.variant.estimated_cost|float) }}</td>
-      <td>{{ '%.2f'|format(row.variant.expected_benefit|float) }}</td>
-      <td>{% set simulation = row.simulation %}{% include 'components/simulation_summary.html' %}</td>
-      <td>{% if row.impact %}<strong>Net {{ '%.2f'|format(row.impact.net_impact|float) }}</strong><br><span class="muted">Cost {{ '%.2f'|format(row.impact.cost_impact|float) }} · Benefit {{ '%.2f'|format(row.impact.benefit_impact|float) }}</span>{% else %}<span class="muted">No impact yet</span>{% endif %}</td>
+      <td><strong>{{ row.variant.name }}</strong><br><span class="muted">{{ row.variant.description or 'Keine Variantenbeschreibung erfasst.' }}</span></td>
+      <td>{% if row.scenario %}<strong>{{ row.scenario.name }}</strong><br><span class="muted">{{ row.scenario.case_volume }} Fälle · {{ row.scenario.processing_minutes_per_case }} Min/Fall</span>{% else %}<span class="muted">Noch kein Szenario. Lege ein Szenario an, um die Variante simulationsfähig zu machen.</span>{% endif %}</td>
+      <td><span class="delta-pill neutral">{{ '%.2f'|format(row.estimated_cost) }}</span></td>
+      <td><span class="delta-pill positive">{{ '%.2f'|format(row.expected_benefit) }}</span></td>
+      <td><span class="delta-pill {{ 'positive' if row.benefit_delta >= 0 else 'negative' }}">{{ '%.2f'|format(row.benefit_delta) }}</span></td>
       <td>{% set risk = row.risk %}{% include 'components/risk_indicator.html' %}</td>
-      <td>{% set confidence = row.confidence %}{% set score = row.confidence_score %}{% include 'components/confidence_indicator.html' %}</td>
+      <td>{% set confidence = row.confidence %}{% include 'components/confidence_indicator.html' %}</td>
+      <td>{% set status = row.simulation_status %}{% include 'components/status_badge.html' %}<br>{% set simulation = row.simulation %}{% include 'components/simulation_summary.html' %}</td>
+      <td>{% if row.impact %}<strong>Net {{ '%.2f'|format(row.impact_delta|float) }}</strong><br><span class="muted">Kosten {{ '%.2f'|format(row.impact.cost_impact|float) }} · Nutzen {{ '%.2f'|format(row.impact.benefit_impact|float) }}</span>{% else %}<span class="muted">Noch kein Impact Assessment. Starte eine Simulation, um Impact sichtbar zu machen.</span>{% endif %}</td>
       <td>{% set status = row.governance_status %}{% include 'components/status_badge.html' %}</td>
       <td>{% if row.scenario %}<form method="post" action="{{ url_for('ui.simulate_scenario', scenario_id=row.scenario.id) }}"><button class="btn small" type="submit">Simulieren</button></form>{% else %}<a class="btn small ghost" href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}#scenarios">Szenario anlegen</a>{% endif %}</td>
     </tr>
@@ -30,6 +37,6 @@
   </tbody>
 </table></div>
 {% else %}
-  {% set title = 'Compare View bereit, aber noch ohne Varianten' %}{% set text = 'Lege Varianten und Szenarien an. Danach wird diese Tabelle zum zentralen Entscheidungsraum.' %}{% include 'components/empty_state.html' %}
+  {% set title = 'Compare View bereit, aber noch ohne Entscheidungsdeltas' %}{% set text = 'Lege Varianten und Szenarien an. Danach wird diese Ansicht zum zentralen Vergleichsraum für Kosten, Nutzen, Risiken, Simulationen, Confidence und Governance.' %}{% include 'components/empty_state.html' %}
 {% endif %}
 {% endblock %}

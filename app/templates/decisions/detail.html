@@ -9,7 +9,7 @@
       <p class="lead">{{ decision.context or 'Noch keine Beschreibung erfasst.' }}</p>
     </div>
     <div class="actions">
-      {% set status = decision.status %}{% include 'components/status_badge.html' %}
+      {% set status = governance_status %}{% include 'components/status_badge.html' %}
       <a class="btn secondary" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">Compare öffnen</a>
       <a class="btn ghost" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">Decision Record</a>
     </div>
@@ -30,7 +30,7 @@
 <section id="overview" class="grid three section">
   <div class="card compact"><h3>Variants</h3><div class="metric-value">{{ decision.variants|length }}</div></div>
   <div class="card compact"><h3>Scenarios</h3><div class="metric-value">{{ decision.scenarios|length }}</div></div>
-  <div class="card compact"><h3>Governance</h3>{% set status = decision.status %}{% include 'components/governance_state.html' %}</div>
+  <div class="card compact"><h3>Governance</h3>{% set governance_state = decision_card.pending_governance_state %}{% include 'components/governance_state.html' %}</div>
 </section>
 
 <section id="variants" class="grid two section">
@@ -49,7 +49,7 @@
     {% if decision.variants %}
       <div class="table-wrap"><table><thead><tr><th>Variante</th><th>Kosten</th><th>Nutzen</th><th>Status</th></tr></thead><tbody>{% for variant in decision.variants %}<tr><td><strong>{{ variant.name }}</strong><br><span class="muted">{{ variant.description or '' }}</span></td><td>{{ '%.2f'|format(variant.estimated_cost|float) }}</td><td>{{ '%.2f'|format(variant.expected_benefit|float) }}</td><td>{% set status = variant.status %}{% include 'components/status_badge.html' %}</td></tr>{% endfor %}</tbody></table></div>
     {% else %}
-      {% set title = 'Noch keine Varianten' %}{% set text = 'Varianten sind die Grundlage für Vergleich, Simulation und Governance.' %}{% include 'components/empty_state.html' %}
+      {% set title = 'Noch keine Varianten erfasst' %}{% set text = 'Erfasse mindestens eine Variante, damit KAIRON Alternativen vergleichen, Szenarien ableiten und eine governancefähige Entscheidungsgrundlage aufbauen kann.' %}{% include 'components/empty_state.html' %}
     {% endif %}
   </div>
 </section>
@@ -73,7 +73,7 @@
   <div class="card">
     <h2>Szenarien & Simulation</h2>
     {% if decision.scenarios %}
-      <div class="table-wrap"><table><thead><tr><th>Szenario</th><th>Variante</th><th>Parameter</th><th>Simulation</th><th>Aktion</th></tr></thead><tbody>{% for scenario in decision.scenarios %}<tr><td><strong>{{ scenario.name }}</strong><br><span class="muted">{{ scenario.description or '' }}</span></td><td>{{ scenario.variant.name }}</td><td>{{ scenario.case_volume }} Fälle · {{ scenario.processing_minutes_per_case }} Min/Fall · {{ scenario.hourly_cost }} /h</td><td>{% set simulation = scenario.simulation_runs[-1] if scenario.simulation_runs else none %}{% include 'components/simulation_summary.html' %}</td><td><form method="post" action="{{ url_for('ui.simulate_scenario', scenario_id=scenario.id) }}"><button class="btn small" type="submit">Simulation starten</button></form></td></tr>{% endfor %}</tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Szenario</th><th>Variante</th><th>Parameter</th><th>Simulation</th><th>Aktion</th></tr></thead><tbody>{% for row in scenario_rows %}{% set scenario = row.scenario %}<tr><td><strong>{{ scenario.name }}</strong><br><span class="muted">{{ scenario.description or '' }}</span></td><td>{{ row.variant.name }}</td><td>{{ scenario.case_volume }} Fälle · {{ scenario.processing_minutes_per_case }} Min/Fall · {{ scenario.hourly_cost }} /h</td><td>{% set simulation = row.latest_simulation %}{% include 'components/simulation_summary.html' %}</td><td><form method="post" action="{{ url_for('ui.simulate_scenario', scenario_id=scenario.id) }}"><button class="btn small" type="submit">Simulation starten</button></form></td></tr>{% endfor %}</tbody></table></div>
     {% else %}
       {% set title = 'Noch keine Szenarien' %}{% set text = 'Erfasse Szenarien, um deterministische Simulationen und Impact Assessments zu erzeugen.' %}{% include 'components/empty_state.html' %}
     {% endif %}

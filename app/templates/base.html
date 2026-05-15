@@ -18,11 +18,11 @@
       </a>
       <nav class="nav" aria-label="Hauptnavigation">
         <a class="{{ 'active' if active_nav == 'decisions' else '' }}" href="{{ url_for('ui.home') }}">Decisions</a>
-        <a class="{{ 'active' if active_nav == 'scenarios' else '' }}" href="{{ url_for('ui.home') }}#scenarios">Scenarios</a>
-        <a class="{{ 'active' if active_nav == 'compare' else '' }}" href="{{ url_for('ui.home') }}#compare">Compare</a>
-        <a class="{{ 'active' if active_nav == 'governance' else '' }}" href="{{ url_for('ui.home') }}#governance">Governance</a>
-        <a class="{{ 'active' if active_nav == 'analytics' else '' }}" href="{{ url_for('ui.home') }}#analytics">Analytics</a>
-        <a href="{{ url_for('api.health') }}">System Status</a>
+        <a class="{{ 'active' if active_nav == 'scenarios' else '' }}" href="{{ url_for('ui.scenarios_overview') }}">Scenarios</a>
+        <a class="{{ 'active' if active_nav == 'compare' else '' }}" href="{{ url_for('ui.compare_overview') }}">Compare</a>
+        <a class="{{ 'active' if active_nav == 'governance' else '' }}" href="{{ url_for('ui.governance_overview') }}">Governance</a>
+        <a class="{{ 'active' if active_nav == 'analytics' else '' }}" href="{{ url_for('ui.analytics_overview') }}">Analytics</a>
+        <a class="{{ 'active' if active_nav == 'system' else '' }}" href="{{ url_for('ui.system_status') }}">System Status</a>
         <a href="{{ url_for('api.index') }}">API</a>
       </nav>
     </header>

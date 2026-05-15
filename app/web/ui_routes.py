@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from decimal import Decimal
+
+from sqlalchemy import text
 
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 
-from app.domains.assessment.models import ImpactAssessment, RiskAssessment, SimulationRun
+from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.domains.assessment.service import RiskAssessmentService
 from app.domains.decision.models import Decision
 from app.domains.decision.service import DecisionService
-from app.domains.governance.models import ApprovalRecord, DecisionRecord
+from app.domains.governance.models import ApprovalRecord
 from app.domains.governance.service import GovernanceService
 from app.domains.scenario.models import Scenario
 from app.domains.scenario.service import ScenarioService
@@ -18,6 +21,51 @@ from app.shared.database import session_scope
 from app.shared.errors import NotFoundError
 
 bp = Blueprint("ui", __name__, url_prefix="/ui")
+
+STATUS_SEQUENCE = (
+    "draft",
+    "in_review",
+    "simulated",
+    "risk_reviewed",
+    "governance_reviewed",
+    "approved",
+    "archived",
+)
+
+OVERVIEW_PAGES = {
+    "scenarios": {
+        "nav": "scenarios",
+        "eyebrow": "Scenario Overview",
+        "title": "Szenarien als prüfbare Entscheidungsräume",
+        "text": "Szenarien machen Annahmen und Kontextvarianten vergleichbar. Im MVP werden sie pro Decision und Variante geführt und deterministisch simuliert.",
+        "empty_title": "Noch keine Szenarien im Workspace",
+        "empty_text": "Lege in einer Decision Varianten und Szenarien an, um Simulationen, Impact Assessments und Entscheidungsdeltas aufzubauen.",
+    },
+    "compare": {
+        "nav": "compare",
+        "eyebrow": "Compare Overview",
+        "title": "Varianten und Szenarien vergleichbar machen",
+        "text": "Compare ist der zentrale KAIRON-Bereich: Kosten, Nutzen, Risiken, Confidence, Simulation Status und Governance Status werden als Entscheidungsgrundlage gegenübergestellt.",
+        "empty_title": "Noch keine Vergleichsgrundlagen",
+        "empty_text": "Öffne eine Decision, lege Varianten und Szenarien an und starte Simulationen. Danach wird der Compare Workspace entscheidungsfähig.",
+    },
+    "governance": {
+        "nav": "governance",
+        "eyebrow": "Governance Overview",
+        "title": "Entscheidungen nachvollziehbar prüfen und freigeben",
+        "text": "Governance bündelt Risiken, Approvals und Decision Records. KI bleibt beratend; die Entscheidung bleibt menschlich verantwortet.",
+        "empty_title": "Noch keine Governance-Arbeit offen",
+        "empty_text": "Erfasse Risiken und Approval Records in einer Decision, um Freigaben und auditierbare Entscheidungsgrundlagen sichtbar zu machen.",
+    },
+    "analytics": {
+        "nav": "analytics",
+        "eyebrow": "Analytics Overview",
+        "title": "Decision Intelligence Kennzahlen vorbereiten",
+        "text": "Analytics bleibt im MVP bewusst leichtgewichtig. Relevante Signale entstehen aus Simulationen, Impact Assessments, Risiken und Governance-Zuständen.",
+        "empty_title": "Analytics ist vorbereitet",
+        "empty_text": "Sobald mehrere Decisions, Szenarien und Simulationen vorhanden sind, können Trends, Baselines und Targets sauber aufgebaut werden.",
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -42,6 +90,14 @@ def _to_int(value, default=0) -> int:
     return int(value)
 
 
+def _as_float(value) -> float:
+    if value is None:
+        return 0.0
+    if isinstance(value, Decimal):
+        return float(value)
+    return float(value)
+
+
 def _message() -> UiMessage | None:
     text = request.args.get("message")
     if not text:
@@ -49,14 +105,109 @@ def _message() -> UiMessage | None:
     return UiMessage(level=request.args.get("level", "info"), text=text)
 
 
-def _dashboard_summary(session) -> dict:
-    decisions = session.query(Decision).all()
-    high_risks = session.query(RiskAssessment).filter(RiskAssessment.severity == "high").count()
-    recent_simulations = session.query(SimulationRun).order_by(SimulationRun.created_at.desc()).limit(5).all()
-    pending_approvals = sum(1 for decision in decisions if decision.status in {"draft", "needs_review"})
-    reassessments_needed = sum(1 for decision in decisions if decision.status == "needs_review") + high_risks
+def _latest_simulation(scenario: Scenario | None) -> SimulationRun | None:
+    if scenario is None or not scenario.simulation_runs:
+        return None
+    return sorted(scenario.simulation_runs, key=lambda run: run.created_at, reverse=True)[0]
+
+
+def _dominant_risk(decision: Decision) -> RiskAssessment | None:
+    severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+    if not decision.risk_assessments:
+        return None
+    return sorted(decision.risk_assessments, key=lambda risk: severity_rank.get(risk.severity, 0), reverse=True)[0]
+
+
+def _latest_approval(decision: Decision) -> ApprovalRecord | None:
+    if not decision.approval_records:
+        return None
+    return sorted(decision.approval_records, key=lambda approval: approval.created_at, reverse=True)[0]
+
+
+def _confidence_label(score: float | None) -> str:
+    if score is None:
+        return "low"
+    if score >= 0.75:
+        return "high"
+    if score >= 0.5:
+        return "medium"
+    return "low"
+
+
+def _decision_confidence(decision: Decision) -> str:
+    scores = []
+    for scenario in decision.scenarios:
+        latest_run = _latest_simulation(scenario)
+        if latest_run and latest_run.impact_assessment:
+            scores.append(_as_float(latest_run.impact_assessment.confidence_score))
+    if not scores:
+        return "low"
+    return _confidence_label(sum(scores) / len(scores))
+
+
+def _risk_label(risk: RiskAssessment | None) -> str:
+    return risk.severity if risk else "none"
+
+
+def _governance_state(decision: Decision) -> str:
+    latest_approval = _latest_approval(decision)
+    if latest_approval and latest_approval.status == "approved":
+        return "approved"
+    if latest_approval:
+        return "governance_reviewed"
+    if decision.risk_assessments:
+        return "risk_reviewed"
+    if any(_latest_simulation(scenario) for scenario in decision.scenarios):
+        return "simulated"
+    if decision.variants or decision.scenarios:
+        return "in_review"
+    return decision.status or "draft"
+
+
+def _pending_governance_state(decision: Decision) -> str:
+    state = _governance_state(decision)
+    if state == "approved":
+        return "Approved"
+    if state == "risk_reviewed":
+        return "Approval pending"
+    if state == "simulated":
+        return "Risk review pending"
+    if state == "in_review":
+        return "Simulation pending"
+    return "Decision setup pending"
+
+
+def _decision_card_view_model(decision: Decision) -> dict:
+    latest_runs = [_latest_simulation(scenario) for scenario in decision.scenarios]
+    latest_runs = [run for run in latest_runs if run is not None]
+    latest_run = sorted(latest_runs, key=lambda run: run.created_at, reverse=True)[0] if latest_runs else None
+    dominant_risk = _dominant_risk(decision)
+    governance_state = _governance_state(decision)
     return {
-        "open_decisions": sum(1 for decision in decisions if decision.status in {"draft", "needs_review"}),
+        "id": decision.id,
+        "title": decision.title,
+        "description": decision.context,
+        "status": governance_state,
+        "created_by": decision.created_by,
+        "created_at": decision.created_at,
+        "variant_count": len(decision.variants),
+        "scenario_count": len(decision.scenarios),
+        "risk_count": len(decision.risk_assessments),
+        "latest_simulation": latest_run,
+        "latest_simulation_status": "simulated" if latest_run else "not_simulated",
+        "confidence": _decision_confidence(decision),
+        "dominant_risk": dominant_risk,
+        "pending_governance_state": _pending_governance_state(decision),
+    }
+
+
+def _dashboard_summary(session, decisions: list[Decision]) -> dict:
+    high_risks = session.query(RiskAssessment).filter(RiskAssessment.severity.in_(["high", "critical"])).count()
+    recent_simulations = session.query(SimulationRun).order_by(SimulationRun.created_at.desc()).limit(5).all()
+    pending_approvals = sum(1 for decision in decisions if _governance_state(decision) != "approved")
+    reassessments_needed = sum(1 for decision in decisions if _dominant_risk(decision) and _governance_state(decision) != "approved")
+    return {
+        "open_decisions": sum(1 for decision in decisions if _governance_state(decision) not in {"approved", "archived"}),
         "critical_risks": high_risks,
         "recent_simulations": len(recent_simulations),
         "pending_approvals": pending_approvals,
@@ -74,34 +225,6 @@ def _decision_or_404(session, decision_id: str) -> Decision:
     return decision
 
 
-def _latest_simulation(scenario: Scenario) -> SimulationRun | None:
-    if not scenario.simulation_runs:
-        return None
-    return sorted(scenario.simulation_runs, key=lambda run: run.created_at, reverse=True)[0]
-
-
-def _impact_for_scenario(scenario: Scenario) -> ImpactAssessment | None:
-    latest_run = _latest_simulation(scenario)
-    return latest_run.impact_assessment if latest_run and latest_run.impact_assessment else None
-
-
-def _dominant_risk(decision: Decision) -> RiskAssessment | None:
-    severity_rank = {"high": 3, "medium": 2, "low": 1}
-    if not decision.risk_assessments:
-        return None
-    return sorted(decision.risk_assessments, key=lambda risk: severity_rank.get(risk.severity, 0), reverse=True)[0]
-
-
-def _confidence_label(score: float | None) -> str:
-    if score is None:
-        return "low"
-    if score >= 0.75:
-        return "high"
-    if score >= 0.5:
-        return "medium"
-    return "low"
-
-
 def _comparison_rows(decision: Decision) -> list[dict]:
     rows = []
     dominant_risk = _dominant_risk(decision)
@@ -112,20 +235,39 @@ def _comparison_rows(decision: Decision) -> list[dict]:
     for variant in decision.variants:
         scenarios = scenarios_by_variant.get(variant.id) or [None]
         for scenario in scenarios:
-            latest_run = _latest_simulation(scenario) if scenario else None
+            latest_run = _latest_simulation(scenario)
             impact = latest_run.impact_assessment if latest_run and latest_run.impact_assessment else None
-            confidence_score = float(impact.confidence_score) if impact else None
+            confidence_score = _as_float(impact.confidence_score) if impact else None
+            estimated_cost = _as_float(variant.estimated_cost)
+            expected_benefit = _as_float(variant.expected_benefit)
             rows.append({
                 "variant": variant,
                 "scenario": scenario,
+                "estimated_cost": estimated_cost,
+                "expected_benefit": expected_benefit,
+                "benefit_delta": expected_benefit - estimated_cost,
                 "simulation": latest_run,
+                "simulation_status": "simulated" if latest_run else "draft",
                 "impact": impact,
+                "impact_delta": _as_float(impact.net_impact) if impact else None,
                 "risk": dominant_risk,
+                "risk_label": _risk_label(dominant_risk),
                 "confidence": _confidence_label(confidence_score),
                 "confidence_score": confidence_score,
-                "governance_status": decision.status,
+                "governance_status": _governance_state(decision),
             })
     return rows
+
+
+def _scenario_rows(decision: Decision) -> list[dict]:
+    return [
+        {
+            "scenario": scenario,
+            "variant": scenario.variant,
+            "latest_simulation": _latest_simulation(scenario),
+        }
+        for scenario in decision.scenarios
+    ]
 
 
 def _workspace_view_model(decision: Decision) -> dict:
@@ -133,9 +275,13 @@ def _workspace_view_model(decision: Decision) -> dict:
     latest_record = sorted(decision.decision_records, key=lambda record: record.created_at, reverse=True)[0] if decision.decision_records else None
     return {
         "decision": decision,
+        "decision_card": _decision_card_view_model(decision),
         "comparison_rows": rows,
+        "scenario_rows": _scenario_rows(decision),
         "latest_record": latest_record,
         "dominant_risk": _dominant_risk(decision),
+        "governance_status": _governance_state(decision),
+        "status_sequence": STATUS_SEQUENCE,
         "has_simulations": any(row["simulation"] for row in rows),
         "has_impacts": any(row["impact"] for row in rows),
     }
@@ -146,13 +292,80 @@ def _workspace_view_model(decision: Decision) -> dict:
 def home():
     with session_scope() as session:
         decisions = session.query(Decision).order_by(Decision.created_at.desc()).all()
+        decision_cards = [_decision_card_view_model(decision) for decision in decisions]
         return render_template(
             "dashboard.html",
             active_nav="decisions",
-            decisions=decisions,
-            summary=_dashboard_summary(session),
+            decisions=decision_cards,
+            summary=_dashboard_summary(session, decisions),
+            status_sequence=STATUS_SEQUENCE,
             message=_message(),
         )
+
+
+def _render_overview(section: str):
+    page = OVERVIEW_PAGES.get(section)
+    if page is None:
+        raise NotFoundError("Workspace section not found")
+    with session_scope() as session:
+        decisions = session.query(Decision).order_by(Decision.created_at.desc()).all()
+        return render_template(
+            "overview.html",
+            active_nav=page["nav"],
+            page=page,
+            decisions=[_decision_card_view_model(decision) for decision in decisions],
+            summary=_dashboard_summary(session, decisions),
+            message=_message(),
+        )
+
+
+@bp.get("/scenarios")
+def scenarios_overview():
+    return _render_overview("scenarios")
+
+
+@bp.get("/compare")
+def compare_overview():
+    return _render_overview("compare")
+
+
+@bp.get("/governance")
+def governance_overview():
+    return _render_overview("governance")
+
+
+@bp.get("/analytics")
+def analytics_overview():
+    return _render_overview("analytics")
+
+
+@bp.get("/<section>")
+def overview(section):
+    return _render_overview(section)
+
+
+def _db_status(session) -> str:
+    try:
+        session.execute(text("select 1"))
+        return "ok"
+    except Exception:
+        current_app.logger.exception("database status check failed")
+        return "error"
+
+
+@bp.get("/system-status")
+def system_status():
+    with session_scope() as session:
+        api_health = "ok"
+        db_status = _db_status(session)
+        status = {
+            "environment": current_app.config.get("ENVIRONMENT", "development").upper(),
+            "api_health": api_health,
+            "db_status": db_status,
+            "build_status": os.getenv("BUILD_STATUS", os.getenv("JENKINS_BUILD_STATUS", "not available")),
+            "pipeline_hint": "Pipeline from SCM should run against the checked-out branch. /api is the official API path; /health remains the smoke-test endpoint.",
+        }
+        return render_template("system_status.html", active_nav="system", status=status, message=_message())
 
 
 @bp.post("/decisions")

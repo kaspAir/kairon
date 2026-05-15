@@ -1,1 +1,2 @@
-<span class="badge {{ status|default('draft') }}">{{ status|default('draft')|replace('_', ' ')|title }}</span>
+{% set normalized_status = status|default('draft') %}
+<span class="badge {{ normalized_status }}">{{ normalized_status|replace('_', ' ')|title }}</span>
