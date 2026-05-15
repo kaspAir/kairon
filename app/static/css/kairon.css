@@ -254,3 +254,48 @@ details summary { cursor: pointer; font-weight: 850; color: var(--color-primary)
 .status-list div:last-child { border-bottom: 0; padding-bottom: 0; }
 .status-list span { color: var(--color-muted); font-weight: 750; }
 .status-list strong { color: var(--color-primary); }
+
+
+/* Context panels: future module hooks without heavy MVP functionality */
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+.context-panel {
+  border-left: 4px solid var(--color-secondary);
+}
+.context-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+.context-list {
+  margin: var(--spacing-sm) 0 0;
+  padding-left: 1.1rem;
+  color: var(--color-text);
+}
+.context-list li {
+  margin-bottom: 0.35rem;
+}
+
+
+.delta-badge { display:inline-flex; align-items:center; margin-top: var(--spacing-sm); padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; background: #eef3f7; color: var(--color-primary); }
+.delta-badge.better_than_expected { background: #e8f5ee; color: var(--color-approved); }
+.delta-badge.worse_than_expected { background: #fdecec; color: var(--color-risk); }
+.delta-badge.unchanged { background: #f3f4f6; color: #4b5563; }
+.observation-list { display: grid; gap: var(--spacing-md); }
+.observation-item { border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--spacing-md); background: #fff; }
+.observation-head { display: flex; justify-content: space-between; gap: var(--spacing-md); align-items: center; margin-bottom: var(--spacing-md); }
+.delta-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--spacing-md); }
+.delta-grid > div { border-left: 3px solid #d9e2ea; padding-left: var(--spacing-sm); }
+.delta-grid strong, .delta-grid span { display: block; }
+.compact-heading { margin-bottom: var(--spacing-md); }
+@media (max-width: 900px) { .delta-grid { grid-template-columns: 1fr; } }
+.badge.observed { color: var(--color-secondary); background: #EEF8FB; border-color: #B9DDEA; }
+.badge.reassessment_needed { color: var(--color-warning); background: #FFFAEB; border-color: #FEDF89; }
+.badge.reassessing { color: var(--color-review); background: #F4F3FF; border-color: #D9D6FE; }

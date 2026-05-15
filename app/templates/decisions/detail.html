@@ -19,10 +19,13 @@
 <nav class="tabs" aria-label="Workspace Tabs">
   <a class="tab active" href="#overview">Overview</a>
   <a class="tab" href="#variants">Variants</a>
+  <a class="tab" href="#context">Context</a>
   <a class="tab" href="#scenarios">Scenarios</a>
   <a class="tab" href="#simulations">Simulations</a>
   <a class="tab" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">Compare</a>
   <a class="tab" href="#risks">Risks & Impact</a>
+  <a class="tab" href="#observation">Observation</a>
+  <a class="tab" href="#reassessment">Reassessment</a>
   <a class="tab" href="#governance">Governance</a>
   <a class="tab" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">Decision Record</a>
 </nav>
@@ -31,6 +34,21 @@
   <div class="card compact"><h3>Variants</h3><div class="metric-value">{{ decision.variants|length }}</div></div>
   <div class="card compact"><h3>Scenarios</h3><div class="metric-value">{{ decision.scenarios|length }}</div></div>
   <div class="card compact"><h3>Governance</h3>{% set governance_state = decision_card.pending_governance_state %}{% include 'components/governance_state.html' %}</div>
+</section>
+
+<section id="context" class="section">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">Decision Context</div>
+      <h2>Kontextmodule vorbereitet, bewusst schlank gehalten</h2>
+      <p class="muted">Diese Panels schaffen stabile Andockpunkte für Prozess-, Organisations-, Ressourcen-/FTE- und Risiko-Kontext. Im MVP bleiben sie strukturiert und erklärend, damit spätere Module ergänzt werden können, ohne den Workspace umzubauen.</p>
+    </div>
+  </div>
+  <div class="grid two">
+    {% for panel in context_panels %}
+      {% include 'components/context_panel.html' %}
+    {% endfor %}
+  </div>
 </section>
 
 <section id="variants" class="grid two section">
@@ -102,6 +120,79 @@
       </div>
     {% else %}
       {% set title = 'Noch keine Impact- oder Risikoangaben' %}{% set text = 'Starte eine Simulation und erfasse Risiken, damit Entscheidungsgrundlagen sichtbar werden.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section id="observation" class="grid two section">
+  <div class="card">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">Observation Context</div>
+        <h2>Observation erfassen</h2>
+        <p class="muted">Vergleiche erwartete und tatsächliche Wirkung. Das macht Entscheidungen später beobachtbar und reassessment-fähig.</p>
+      </div>
+    </div>
+    <form method="post" action="{{ url_for('ui.create_observation', decision_id=decision.id) }}">
+      <div class="form-row two">
+        <div><label>Erwarteter Nutzen</label><input name="expected_benefit" type="number" step="0.01" min="0" value="0"></div>
+        <div><label>Tatsächlicher Nutzen</label><input name="actual_benefit" type="number" step="0.01" min="0" value="0"></div>
+      </div>
+      <div class="form-row two">
+        <div><label>Erwartete Kosten</label><input name="expected_cost" type="number" step="0.01" min="0" value="0"></div>
+        <div><label>Tatsächliche Kosten</label><input name="actual_cost" type="number" step="0.01" min="0" value="0"></div>
+      </div>
+      <label>Erwartete Risiken</label><textarea name="expected_risks" placeholder="Welche Risiken wurden vor der Umsetzung erwartet?"></textarea>
+      <label>Tatsächliche Risiken</label><textarea name="actual_risks" placeholder="Welche Risiken sind tatsächlich eingetreten oder neu sichtbar geworden?"></textarea>
+      <label>Kommentar</label><textarea name="comment" placeholder="Beobachtung, Abweichung, nächste Prüfung"></textarea>
+      <label>Created by</label><input name="created_by" value="system">
+      <button class="btn" type="submit">Observation speichern</button>
+    </form>
+  </div>
+  <div class="card">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">Delta View</div>
+        <h2>Erwartung vs. Realität</h2>
+      </div>
+    </div>
+    {% if observation_context.records %}
+      <div class="observation-list">
+      {% for observation in observation_context.records %}
+        <div class="observation-item">
+          <div class="observation-head">
+            <strong>{{ observation.observed_at.strftime('%Y-%m-%d') }}</strong>
+            {% set status = observation.status %}{% include 'components/status_badge.html' %}
+          </div>
+          <div class="delta-grid">
+            <div><span class="muted">Nutzen</span><strong>{{ '%.2f'|format(observation.expected_benefit) }} → {{ '%.2f'|format(observation.actual_benefit) }}</strong>{% set delta = observation.benefit_delta %}{% include 'components/delta_indicator.html' %}</div>
+            <div><span class="muted">Kosten</span><strong>{{ '%.2f'|format(observation.expected_cost) }} → {{ '%.2f'|format(observation.actual_cost) }}</strong>{% set delta = observation.cost_delta %}{% include 'components/delta_indicator.html' %}</div>
+            <div><span class="muted">Risiken</span><strong>Expected vs. actual</strong>{% set delta = observation.risk_delta %}{% include 'components/delta_indicator.html' %}</div>
+          </div>
+          {% if observation.comment %}<p class="muted">{{ observation.comment }}</p>{% endif %}
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      {% set title = observation_context.empty_title %}{% set text = observation_context.empty_text %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section id="reassessment" class="section">
+  <div class="card">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">Reassessment</div>
+        <h2>Reassessment Status vorbereitet</h2>
+        <p class="muted">KAIRON kann später aus Beobachtungen ableiten, ob eine Entscheidung erneut geprüft werden muss. Im MVP zeigen wir den vorbereiteten Status bewusst einfach.</p>
+      </div>
+      <div>{% set governance_state = observation_context.status %}{% include 'components/governance_state.html' %}</div>
+    </div>
+    {% if observation_context.latest %}
+      <p>Letzte Observation: {{ observation_context.latest.observed_at.strftime('%Y-%m-%d') }} · Status: {{ observation_context.status.replace('_', ' ')|title }}</p>
+    {% else %}
+      {% set title = 'Noch kein Reassessment ausgelöst' %}{% set text = 'Sobald tatsächliche Werte von erwarteten Nutzen-, Kosten- oder Risikowerten abweichen, kann KAIRON eine erneute Bewertung vorbereiten. Noch keine Lifecycle-Engine, aber ein sauberer Andockpunkt.' %}{% include 'components/empty_state.html' %}
     {% endif %}
   </div>
 </section>

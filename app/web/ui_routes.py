@@ -14,6 +14,7 @@ from app.domains.decision.models import Decision
 from app.domains.decision.service import DecisionService
 from app.domains.governance.models import ApprovalRecord
 from app.domains.governance.service import GovernanceService
+from app.domains.observation.service import ObservationService
 from app.domains.scenario.models import Scenario
 from app.domains.scenario.service import ScenarioService
 from app.domains.simulation.service import SimulationService
@@ -30,6 +31,9 @@ STATUS_SEQUENCE = (
     "governance_reviewed",
     "approved",
     "archived",
+    "observed",
+    "reassessment_needed",
+    "reassessing",
 )
 
 OVERVIEW_PAGES = {
@@ -150,6 +154,8 @@ def _risk_label(risk: RiskAssessment | None) -> str:
 
 
 def _governance_state(decision: Decision) -> str:
+    if decision.status in {"observed", "reassessment_needed", "reassessing"}:
+        return decision.status
     latest_approval = _latest_approval(decision)
     if latest_approval and latest_approval.status == "approved":
         return "approved"
@@ -166,6 +172,12 @@ def _governance_state(decision: Decision) -> str:
 
 def _pending_governance_state(decision: Decision) -> str:
     state = _governance_state(decision)
+    if state == "reassessment_needed":
+        return "Reassessment needed"
+    if state == "reassessing":
+        return "Reassessing"
+    if state == "observed":
+        return "Observed"
     if state == "approved":
         return "Approved"
     if state == "risk_reviewed":
@@ -270,12 +282,80 @@ def _scenario_rows(decision: Decision) -> list[dict]:
     ]
 
 
+def _context_panels(decision: Decision) -> list[dict]:
+    """Prepare future workspace modules without implementing full modeling capabilities.
+
+    The MVP keeps these panels read-only and explanatory. Later slices can replace the
+    `items`/`empty_text` values with real Process, Organization, Resource/FTE and Risk
+    domain data without changing the Decision Workspace layout.
+    """
+    risk_count = len(decision.risk_assessments)
+    scenario_count = len(decision.scenarios)
+    return [
+        {
+            "key": "process-context",
+            "title": "Process Context",
+            "summary": "Prozessbezug der Decision",
+            "items": [],
+            "empty_title": "Noch kein Prozesskontext verknüpft",
+            "empty_text": "Später können hier Prozesslandkarte, Prozessversion, relevante Prozessschritte oder BPMN-Referenzen angebunden werden. Im MVP bleibt der Kontext bewusst beschreibend, damit KAIRON keine reine BPM-Canvas wird.",
+            "prepared_for": "Process Domain",
+        },
+        {
+            "key": "organization-context",
+            "title": "Organization Context",
+            "summary": "Organisationseinheiten und Verantwortlichkeiten",
+            "items": [],
+            "empty_title": "Noch kein Organisationskontext erfasst",
+            "empty_text": "Später können Organisationseinheiten, Rollen, Verantwortlichkeiten und Freigabegremien ergänzt werden. Der Workspace ist bereits darauf vorbereitet, ohne einen Organigramm-Editor einzubauen.",
+            "prepared_for": "Organization Domain",
+        },
+        {
+            "key": "resource-context",
+            "title": "Resource / FTE Context",
+            "summary": "Kapazität, Ressourcen und FTE-Wirkung",
+            "items": [f"{scenario_count} Szenario(s) mit Fallzahl, Bearbeitungszeit und Stundenkosten vorbereitet"] if scenario_count else [],
+            "empty_title": "Noch keine Ressourcen- oder FTE-Grundlage",
+            "empty_text": "Erfasse Szenarien mit Fallzahlen, Bearbeitungszeiten und Stundenkosten. Später können daraus FTE-Bedarf, Kapazitätsgrenzen und Engpässe sauber abgeleitet werden.",
+            "prepared_for": "Resource & Capacity Domain",
+        },
+        {
+            "key": "risk-management",
+            "title": "Risk Management",
+            "summary": "Risiken, Unsicherheiten und Nebenwirkungen",
+            "items": [f"{risk_count} Risk Assessment(s) erfasst"] if risk_count else [],
+            "empty_title": "Noch keine Risiken bewertet",
+            "empty_text": "Erfasse Risiken, Unsicherheiten oder Nebenwirkungen, um die Entscheidung governancefähig vergleichbar zu machen. Komplexes Risikomanagement folgt später bewusst als eigenes Modul.",
+            "prepared_for": "Risk Management",
+        },
+    ]
+
+
+def _observation_records(decision: Decision) -> list[dict]:
+    service = ObservationService(None)
+    return [service.observation_view_model(record) for record in sorted(decision.observation_records, key=lambda record: record.observed_at, reverse=True)]
+
+
+def _observation_context(decision: Decision) -> dict:
+    observations = _observation_records(decision)
+    latest = observations[0] if observations else None
+    return {
+        "records": observations,
+        "latest": latest,
+        "status": decision.status if decision.status in {"observed", "reassessment_needed", "reassessing"} else (latest["status"] if latest else "not_observed"),
+        "empty_title": "Noch keine Beobachtung erfasst",
+        "empty_text": "Beobachtungen machen Entscheidungen überprüfbar: Erwarteter Nutzen, tatsächlicher Nutzen, Kosten und Risiken werden nachverfolgt, damit KAIRON später Reassessments auslösen kann.",
+    }
+
+
 def _workspace_view_model(decision: Decision) -> dict:
     rows = _comparison_rows(decision)
     latest_record = sorted(decision.decision_records, key=lambda record: record.created_at, reverse=True)[0] if decision.decision_records else None
     return {
         "decision": decision,
         "decision_card": _decision_card_view_model(decision),
+        "context_panels": _context_panels(decision),
+        "observation_context": _observation_context(decision),
         "comparison_rows": rows,
         "scenario_rows": _scenario_rows(decision),
         "latest_record": latest_record,
@@ -493,6 +573,26 @@ def create_approval(decision_id):
                 created_by=_created_by(),
             )
         return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Governance state updated", level="success"))
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
+
+
+@bp.post("/decisions/<decision_id>/observations")
+def create_observation(decision_id):
+    try:
+        with session_scope() as session:
+            ObservationService(session).create_observation_record(
+                decision_id=decision_id,
+                expected_benefit=_to_float(request.form.get("expected_benefit")),
+                actual_benefit=_to_float(request.form.get("actual_benefit")),
+                expected_cost=_to_float(request.form.get("expected_cost")),
+                actual_cost=_to_float(request.form.get("actual_cost")),
+                expected_risks=request.form.get("expected_risks") or None,
+                actual_risks=request.form.get("actual_risks") or None,
+                comment=request.form.get("comment") or None,
+                created_by=_created_by(),
+            )
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Observation saved", level="success") + "#observation")
     except ValueError as exc:
         return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
 
