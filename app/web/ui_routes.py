@@ -12,6 +12,7 @@ from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.domains.assessment.service import RiskAssessmentService
 from app.domains.decision.models import Decision
 from app.domains.decision.service import DecisionService
+from app.domains.decision.status import DECISION_STATUS_LABELS, DECISION_STATUS_DEFINITIONS, allowed_next_statuses
 from app.domains.governance.models import ApprovalRecord
 from app.domains.governance.service import GovernanceService
 from app.domains.observation.service import ObservationService
@@ -23,18 +24,8 @@ from app.shared.errors import NotFoundError
 
 bp = Blueprint("ui", __name__, url_prefix="/ui")
 
-STATUS_SEQUENCE = (
-    "draft",
-    "in_review",
-    "simulated",
-    "risk_reviewed",
-    "governance_reviewed",
-    "approved",
-    "archived",
-    "observed",
-    "reassessment_needed",
-    "reassessing",
-)
+STATUS_SEQUENCE = tuple(status.value for status in DECISION_STATUS_DEFINITIONS)
+
 
 OVERVIEW_PAGES = {
     "scenarios": {
@@ -189,6 +180,17 @@ def _pending_governance_state(decision: Decision) -> str:
     return "Decision setup pending"
 
 
+def _status_transition_actions(decision: Decision) -> list[dict]:
+    return [
+        {
+            "value": status,
+            "label": DECISION_STATUS_LABELS.get(status, status.replace("_", " ").title()),
+            "description": "Controlled lifecycle transition; audit/Decision Record linkage prepared.",
+        }
+        for status in allowed_next_statuses(decision.status)
+    ]
+
+
 def _decision_card_view_model(decision: Decision) -> dict:
     latest_runs = [_latest_simulation(scenario) for scenario in decision.scenarios]
     latest_runs = [run for run in latest_runs if run is not None]
@@ -210,6 +212,7 @@ def _decision_card_view_model(decision: Decision) -> dict:
         "confidence": _decision_confidence(decision),
         "dominant_risk": dominant_risk,
         "pending_governance_state": _pending_governance_state(decision),
+        "allowed_status_transitions": _status_transition_actions(decision),
     }
 
 
@@ -362,6 +365,8 @@ def _workspace_view_model(decision: Decision) -> dict:
         "dominant_risk": _dominant_risk(decision),
         "governance_status": _governance_state(decision),
         "status_sequence": STATUS_SEQUENCE,
+        "status_labels": DECISION_STATUS_LABELS,
+        "status_transition_actions": _status_transition_actions(decision),
         "has_simulations": any(row["simulation"] for row in rows),
         "has_impacts": any(row["impact"] for row in rows),
     }
@@ -496,6 +501,22 @@ def decision_record(decision_id):
             message=_message(),
             **_workspace_view_model(decision),
         )
+
+
+@bp.post("/decisions/<decision_id>/status")
+def change_decision_status(decision_id):
+    target_status = request.form.get("status", "")
+    try:
+        with session_scope() as session:
+            decision, previous_status = DecisionService(session).change_decision_status(
+                decision_id=decision_id,
+                target_status=target_status,
+                changed_by=_created_by(),
+            )
+            label = DECISION_STATUS_LABELS.get(decision.status, decision.status.replace("_", " ").title())
+            return redirect(url_for("ui.decision_detail", decision_id=decision.id, message=f"Status changed to {label}", level="success") + "#lifecycle")
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error") + "#lifecycle")
 
 
 @bp.post("/decisions/<decision_id>/variants")

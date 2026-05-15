@@ -18,6 +18,7 @@
 
 <nav class="tabs" aria-label="Workspace Tabs">
   <a class="tab active" href="#overview">Overview</a>
+  <a class="tab" href="#lifecycle">Lifecycle</a>
   <a class="tab" href="#variants">Variants</a>
   <a class="tab" href="#context">Context</a>
   <a class="tab" href="#scenarios">Scenarios</a>
@@ -34,6 +35,37 @@
   <div class="card compact"><h3>Variants</h3><div class="metric-value">{{ decision.variants|length }}</div></div>
   <div class="card compact"><h3>Scenarios</h3><div class="metric-value">{{ decision.scenarios|length }}</div></div>
   <div class="card compact"><h3>Governance</h3>{% set governance_state = decision_card.pending_governance_state %}{% include 'components/governance_state.html' %}</div>
+</section>
+
+<section id="lifecycle" class="section">
+  <div class="card">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">Decision Lifecycle</div>
+        <h2>Status kontrolliert führen</h2>
+        <p class="muted">Statuswechsel laufen über den Decision Service. Ungültige Übergänge werden verhindert; Audit- und Decision-Record-Bezug ist vorbereitet.</p>
+      </div>
+      <div>{% set status = decision.status %}{% include 'components/status_badge.html' %}</div>
+    </div>
+    <div class="lifecycle-flow">
+      {% for status_value in status_sequence %}
+        <span class="lifecycle-step {% if status_value == decision.status %}current{% endif %}">{{ status_labels.get(status_value, status_value|replace('_', ' ')|title) }}</span>
+      {% endfor %}
+    </div>
+    {% if status_transition_actions %}
+      <div class="actions lifecycle-actions">
+        {% for action in status_transition_actions %}
+          <form method="post" action="{{ url_for('ui.change_decision_status', decision_id=decision.id) }}">
+            <input type="hidden" name="status" value="{{ action.value }}">
+            <input type="hidden" name="created_by" value="system">
+            <button class="btn small secondary" type="submit">Set {{ action.label }}</button>
+          </form>
+        {% endfor %}
+      </div>
+    {% else %}
+      {% set title = 'Keine weiteren Statuswechsel verfügbar' %}{% set text = 'Diese Decision ist in einem End- oder Wartezustand. Spätere Governance- und Audit-Erweiterungen können hier anschliessen, ohne den Workspace umzubauen.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
 </section>
 
 <section id="context" class="section">

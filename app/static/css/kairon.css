@@ -299,3 +299,34 @@ details summary { cursor: pointer; font-weight: 850; color: var(--color-primary)
 .badge.observed { color: var(--color-secondary); background: #EEF8FB; border-color: #B9DDEA; }
 .badge.reassessment_needed { color: var(--color-warning); background: #FFFAEB; border-color: #FEDF89; }
 .badge.reassessing { color: var(--color-review); background: #F4F3FF; border-color: #D9D6FE; }
+
+.lifecycle-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-md) 0;
+}
+
+.lifecycle-step {
+  border: 1px solid #d9e2ec;
+  border-radius: 999px;
+  color: #52616b;
+  display: inline-flex;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.7rem;
+  background: #fff;
+}
+
+.lifecycle-step.current {
+  background: rgba(24, 58, 104, 0.09);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.lifecycle-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
