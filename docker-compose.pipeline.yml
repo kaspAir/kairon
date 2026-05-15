@@ -8,6 +8,11 @@ services:
       POSTGRES_PASSWORD: kairon_int_password
     ports:
       - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kairon -d kairon"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - kairon_pipeline_db_data:/var/lib/postgresql/data
 
@@ -19,10 +24,12 @@ services:
     environment:
       FLASK_ENV: pipeline
       DATABASE_URL: postgresql://kairon:kairon_int_password@kairon-db:5432/kairon
+      LOG_LEVEL: INFO
     ports:
       - "5001:5000"
     depends_on:
-      - kairon-db
+      kairon-db:
+        condition: service_healthy
 
 volumes:
   kairon_pipeline_db_data:

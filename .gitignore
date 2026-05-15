@@ -1,19 +1,43 @@
+# Python / virtualenv
 .venv/
 venv/
+env/
 __pycache__/
 *.py[cod]
+*.pyo
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
+coverage.xml
 htmlcov/
+
+# Local configuration and secrets
 .env
+.env.*
+!.env.example
+instance/
+
+# Local databases and runtime files
 *.db
 *.sqlite
 *.sqlite3
-instance/
+kairon.db
+*.log
+logs/
+
+# Structurizr local cache / generated runtime state
+.structurizr/
+.structurizr*
+workspace.json
+
+# IDE / OS
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/
+
+# Build artifacts
 dist/
 build/
 *.egg-info/
-01_Architektur/kairon-architecture/.structurizr/

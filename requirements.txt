@@ -1,4 +1,8 @@
 flask
+SQLAlchemy
 psycopg2-binary
+alembic
+marshmallow
+python-dotenv
 pytest
 requests

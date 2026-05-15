@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
         stage('Clean Workspace') {
             steps {
@@ -8,9 +12,11 @@ pipeline {
             }
         }
 
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                sh 'git clone -b develop https://github.com/kaspAir/kairon.git .'
+                checkout scm
+                sh 'git rev-parse --abbrev-ref HEAD || true'
+                sh 'git rev-parse --short HEAD'
             }
         }
 
@@ -34,7 +40,7 @@ pipeline {
 
         stage('Smoke Test') {
             steps {
-                sh 'docker compose -f docker-compose.pipeline.yml exec -T kairon-app python -c "import urllib.request, json; r=urllib.request.urlopen(\\"http://localhost:5000/health\\"); d=json.loads(r.read().decode()); assert d[\\"status\\"] == \\"ok\\"; print(\\"KAIRON health check OK\\")"'
+                sh 'docker compose -f docker-compose.pipeline.yml exec -T kairon-app python -c "import urllib.request, json; r=urllib.request.urlopen(\"http://localhost:5000/health\"); d=json.loads(r.read().decode()); assert d[\"status\"] == \"ok\"; print(\"KAIRON health check OK\")"'
             }
         }
 
@@ -47,11 +53,11 @@ pipeline {
 
     post {
         always {
-            sh 'docker compose -f docker-compose.pipeline.yml down || true'
+            sh 'docker compose -f docker-compose.pipeline.yml down -v || true'
         }
 
         success {
-            echo 'Pipeline succeeded - integration environment is valid'
+            echo 'Pipeline succeeded - checked-out SCM branch is valid'
         }
 
         failure {
