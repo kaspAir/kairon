@@ -2,53 +2,60 @@ pipeline {
     agent any
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+
         stage('Checkout') {
             steps {
-                echo 'Checkout source code'
-                checkout scm
+                sh 'git clone -b develop https://github.com/kaspAir/kairon.git .'
             }
         }
 
-        stage('Build Docker Environment') {
+        stage('Docker Version') {
             steps {
-                echo 'Build KAIRON integration environment'
-                sh 'docker compose -f docker-compose.integration.yml build'
+                sh 'docker version'
             }
         }
 
-        stage('Start Integration Environment') {
+        stage('Build Pipeline Environment') {
             steps {
-                echo 'Start KAIRON integration environment'
-                sh 'docker compose -f docker-compose.integration.yml up -d'
+                sh 'docker compose -f docker-compose.pipeline.yml build'
+            }
+        }
+
+        stage('Start Pipeline Environment') {
+            steps {
+                sh 'docker compose -f docker-compose.pipeline.yml up -d'
             }
         }
 
         stage('Smoke Test') {
             steps {
-                echo 'Check KAIRON health endpoint'
-                sh 'python - <<PY\nimport urllib.request\nimport json\nresponse = urllib.request.urlopen("http://kairon-app-int:5000/health")\ndata = json.loads(response.read().decode())\nassert data["status"] == "ok"\nprint("KAIRON health check OK")\nPY'
+                sh 'docker compose -f docker-compose.pipeline.yml exec -T kairon-app python -c "import urllib.request, json; r=urllib.request.urlopen(\\"http://localhost:5000/health\\"); d=json.loads(r.read().decode()); assert d[\\"status\\"] == \\"ok\\"; print(\\"KAIRON health check OK\\")"'
             }
         }
 
         stage('Regression Tests') {
             steps {
-                echo 'Run regression tests'
-                sh 'docker compose -f docker-compose.integration.yml exec -T kairon-app pytest tests/regression'
+                sh 'docker compose -f docker-compose.pipeline.yml exec -T kairon-app pytest tests/regression'
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline finished'
-        }
-
-        failure {
-            echo 'Pipeline failed - deployment must not continue'
+            sh 'docker compose -f docker-compose.pipeline.yml down || true'
         }
 
         success {
             echo 'Pipeline succeeded - integration environment is valid'
+        }
+
+        failure {
+            echo 'Pipeline failed - deployment must not continue'
         }
     }
 }
