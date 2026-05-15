@@ -9,6 +9,7 @@ from sqlalchemy import text
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 
 from app.domains.assessment.models import RiskAssessment, SimulationRun
+from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
 from app.domains.assessment.service import RiskAssessmentService
 from app.domains.decision.models import Decision
 from app.domains.decision.service import DecisionService
@@ -230,6 +231,7 @@ def _dashboard_summary(session, decisions: list[Decision]) -> dict:
         "environment": current_app.config.get("ENVIRONMENT", "development").upper(),
         "build_status": os.getenv("BUILD_STATUS", os.getenv("JENKINS_BUILD_STATUS", "not available")),
         "api_health": "ok",
+        "demo_available": any(decision.title == DEMO_DECISION_TITLE for decision in decisions),
     }
 
 
@@ -386,6 +388,19 @@ def home():
             status_sequence=STATUS_SEQUENCE,
             message=_message(),
         )
+
+
+
+@bp.post("/demo-seed")
+def load_demo_seed():
+    with session_scope() as session:
+        decision = seed_golden_demo(session)
+        return redirect(url_for(
+            "ui.decision_detail",
+            decision_id=decision.id,
+            message="Golden demo data loaded",
+            level="success",
+        ))
 
 
 def _render_overview(section: str):
