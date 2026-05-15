@@ -1,4 +1,4 @@
-"""add structured decision record data
+"""structured decision record
 
 Revision ID: 0002_structured_decision_record
 Revises: 0001_initial_mvp_core
