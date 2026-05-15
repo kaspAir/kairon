@@ -47,7 +47,18 @@ pipeline {
         stage('Regression Tests') {
             steps {
                 sh 'docker compose -f docker-compose.pipeline.yml exec -T kairon-app pytest tests/regression'
-            }
+                for i in $(seq 1 30); do
+                    if docker compose -f docker-compose.pipeline.yml exec -T kairon-app python -c "import urllib.request, json; r=urllib.request.urlopen('http://localhost:5000/health', timeout=2); d=json.loads(r.read().decode()); assert d['status'] == 'ok'; print('KAIRON health check OK')" ; then
+                        exit 0
+                    fi
+                    echo "Waiting for KAIRON app to become healthy... attempt $i/30"
+                    sleep 2
+                    done
+
+                    echo "KAIRON app did not become healthy in time"
+                    docker compose -f docker-compose.pipeline.yml logs kairon-app
+                    exit 1
+                        }
         }
     }
 
