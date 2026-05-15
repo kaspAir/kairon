@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · Decision Control Center{% endblock %}
+{% block content %}
+<section>
+  <div class="eyebrow">Decision Control Center</div>
+  <h1>Governance-fähige Entscheidungen sichtbar machen</h1>
+  <p class="lead">KAIRON ist kein BPM-Tool und keine CRUD-App. Dieser Workspace macht Entscheidungsgrundlagen, Varianten, Szenarien, Simulationen, Risiken und Governance-Zustände nachvollziehbar.</p>
+</section>
+
+<section class="grid five section" aria-label="Dashboard Kennzahlen">
+  <div class="card metric"><div class="metric-value">{{ summary.open_decisions }}</div><div class="metric-label">Open Decisions</div><div class="metric-note">Draft oder Review</div></div>
+  <div class="card metric"><div class="metric-value">{{ summary.critical_risks }}</div><div class="metric-label">Critical Risks</div><div class="metric-note">High severity</div></div>
+  <div class="card metric"><div class="metric-value">{{ summary.recent_simulations }}</div><div class="metric-label">Recent Simulations</div><div class="metric-note">Letzte Simulationsläufe</div></div>
+  <div class="card metric"><div class="metric-value">{{ summary.pending_approvals }}</div><div class="metric-label">Pending Approvals</div><div class="metric-note">Governance offen</div></div>
+  <div class="card metric"><div class="metric-value">{{ summary.reassessments_needed }}</div><div class="metric-label">Reassessments Needed</div><div class="metric-note">Risiko oder Review</div></div>
+</section>
+
+<section class="toolbar">
+  <div class="actions">
+    <span class="badge review">{{ summary.environment }}</span>
+    <span class="badge draft">Build: {{ summary.build_status }}</span>
+    <span class="badge approved">API Health: {{ summary.api_health }}</span>
+  </div>
+</section>
+
+<section class="grid two section">
+  <div class="card">
+    <h2>Neue Decision erfassen</h2>
+    <p class="muted">Startet einen auditierbaren MVP-Flow. Varianten, Szenarien und Governance folgen im Workspace.</p>
+    <form method="post" action="{{ url_for('ui.create_decision') }}">
+      <label for="title">Titel</label>
+      <input id="title" name="title" required placeholder="z. B. Automatisierung Rechnungseingang">
+      <label for="description">Beschreibung</label>
+      <textarea id="description" name="description" placeholder="Kontext, Ziel, Entscheidungsbedarf"></textarea>
+      <label for="created_by">Created by</label>
+      <input id="created_by" name="created_by" value="system">
+      <button class="btn" type="submit">Decision anlegen</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Aktuelle Decisions</h2>
+    {% if decisions %}
+      <div class="grid">
+        {% for decision in decisions %}
+          {% include 'components/decision_card.html' %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {% set title = 'Noch keine Decision vorhanden' %}
+      {% set text = 'Lege die erste Decision an, um Varianten, Szenarien, Simulationen und den auditierbaren Decision Record aufzubauen.' %}
+      {% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

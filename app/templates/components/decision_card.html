@@ -1,0 +1,12 @@
+<article class="card compact">
+  <div class="toolbar" style="margin:0 0 .6rem 0">
+    <h3 style="margin:0"><a href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}">{{ decision.title }}</a></h3>
+    {% set status = decision.status %}{% include 'components/status_badge.html' %}
+  </div>
+  <p class="muted">{{ decision.context or 'No decision context captured yet.' }}</p>
+  <div class="actions small muted">
+    <span>Created by {{ decision.created_by }}</span>
+    <span>·</span>
+    <span>{{ decision.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+  </div>
+</article>

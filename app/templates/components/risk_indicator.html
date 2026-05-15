@@ -1,0 +1,5 @@
+{% if risk %}
+  <span class="indicator risk {{ risk.severity }}">{{ risk.severity|title }} risk</span>
+{% else %}
+  <span class="indicator risk low">No risk captured</span>
+{% endif %}

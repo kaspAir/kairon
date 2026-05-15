@@ -1,0 +1,6 @@
+{% if simulation %}
+  <div><strong>{{ '%.2f'|format(simulation.total_processing_hours|float) }} h</strong></div>
+  <div class="small muted">{{ '%.2f'|format(simulation.total_cost|float) }} cost units</div>
+{% else %}
+  <span class="muted">Not simulated yet</span>
+{% endif %}

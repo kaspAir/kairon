@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}KAIRON MVP{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='kairon.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <strong>KAIRON</strong>
+      <span>Decision Intelligence MVP</span>
+    </div>
+    <nav>
+      <a href="{{ url_for('ui.decision_list') }}">Decisions</a>
+      <a href="/api">API</a>
+      <a href="/health">Health</a>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · Compare · {{ decision.title }}{% endblock %}
+{% block content %}
+<section>
+  <div class="eyebrow">Compare View</div>
+  <div class="toolbar">
+    <div><h1>Varianten und Szenarien vergleichen</h1><p class="lead">Die Compare View stellt Entscheidungsgrundlagen tabellarisch gegenüber: Kosten, Nutzen, Simulation, Impact, Risiko, Confidence und Governance Status.</p></div>
+    <a class="btn ghost" href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}">Zurück zum Workspace</a>
+  </div>
+</section>
+
+{% if comparison_rows %}
+<div class="table-wrap section"><table>
+  <thead><tr><th>Variante</th><th>Szenario</th><th>Geschätzte Kosten</th><th>Erwarteter Nutzen</th><th>Simulation</th><th>Impact Assessment</th><th>Risk Assessment</th><th>Confidence</th><th>Governance Status</th><th>Aktion</th></tr></thead>
+  <tbody>
+    {% for row in comparison_rows %}
+    <tr>
+      <td><strong>{{ row.variant.name }}</strong><br><span class="muted">{{ row.variant.description or '' }}</span></td>
+      <td>{% if row.scenario %}<strong>{{ row.scenario.name }}</strong><br><span class="muted">{{ row.scenario.case_volume }} Fälle · {{ row.scenario.processing_minutes_per_case }} Min/Fall</span>{% else %}<span class="muted">No scenario yet</span>{% endif %}</td>
+      <td>{{ '%.2f'|format(row.variant.estimated_cost|float) }}</td>
+      <td>{{ '%.2f'|format(row.variant.expected_benefit|float) }}</td>
+      <td>{% set simulation = row.simulation %}{% include 'components/simulation_summary.html' %}</td>
+      <td>{% if row.impact %}<strong>Net {{ '%.2f'|format(row.impact.net_impact|float) }}</strong><br><span class="muted">Cost {{ '%.2f'|format(row.impact.cost_impact|float) }} · Benefit {{ '%.2f'|format(row.impact.benefit_impact|float) }}</span>{% else %}<span class="muted">No impact yet</span>{% endif %}</td>
+      <td>{% set risk = row.risk %}{% include 'components/risk_indicator.html' %}</td>
+      <td>{% set confidence = row.confidence %}{% set score = row.confidence_score %}{% include 'components/confidence_indicator.html' %}</td>
+      <td>{% set status = row.governance_status %}{% include 'components/status_badge.html' %}</td>
+      <td>{% if row.scenario %}<form method="post" action="{{ url_for('ui.simulate_scenario', scenario_id=row.scenario.id) }}"><button class="btn small" type="submit">Simulieren</button></form>{% else %}<a class="btn small ghost" href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}#scenarios">Szenario anlegen</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+  {% set title = 'Compare View bereit, aber noch ohne Varianten' %}{% set text = 'Lege Varianten und Szenarien an. Danach wird diese Tabelle zum zentralen Entscheidungsraum.' %}{% include 'components/empty_state.html' %}
+{% endif %}
+{% endblock %}

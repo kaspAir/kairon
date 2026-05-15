@@ -1,0 +1,39 @@
+{% extends "app/base.html" %}
+{% block title %}KAIRON Decisions{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">MVP Flow</p>
+    <h1>Decision anlegen und Governance-Slice durchspielen</h1>
+    <p>Diese UI ist bewusst minimal: Sie nutzt die bestehenden Services, hält die API unter <code>/api</code> offiziell und macht Entscheidungsgrundlagen sichtbar.</p>
+  </div>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <h2>Neue Decision</h2>
+    <form method="post" action="{{ url_for('ui.create_decision') }}">
+      <label>Titel<input name="title" required placeholder="z. B. Automatisierung Rechnungseingang"></label>
+      <label>Beschreibung<textarea name="description" rows="4" placeholder="Kontext, Ziel, Entscheidungsbedarf"></textarea></label>
+      <label>Created by<input name="created_by" value="system"></label>
+      <button type="submit">Decision anlegen</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Bestehende Decisions</h2>
+    {% if decisions %}
+      <div class="list">
+      {% for decision in decisions %}
+        <a class="list-item" href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}">
+          <strong>{{ decision.title }}</strong>
+          <span>Status: {{ decision.status }} · Version {{ decision.version }}</span>
+        </a>
+      {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Noch keine Decision vorhanden.</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

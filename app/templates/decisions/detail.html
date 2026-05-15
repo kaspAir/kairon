@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · {{ decision.title }}{% endblock %}
+{% block content %}
+<section>
+  <div class="eyebrow">Decision Workspace</div>
+  <div class="toolbar">
+    <div>
+      <h1>{{ decision.title }}</h1>
+      <p class="lead">{{ decision.context or 'Noch keine Beschreibung erfasst.' }}</p>
+    </div>
+    <div class="actions">
+      {% set status = decision.status %}{% include 'components/status_badge.html' %}
+      <a class="btn secondary" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">Compare öffnen</a>
+      <a class="btn ghost" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">Decision Record</a>
+    </div>
+  </div>
+</section>
+
+<nav class="tabs" aria-label="Workspace Tabs">
+  <a class="tab active" href="#overview">Overview</a>
+  <a class="tab" href="#variants">Variants</a>
+  <a class="tab" href="#scenarios">Scenarios</a>
+  <a class="tab" href="#simulations">Simulations</a>
+  <a class="tab" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">Compare</a>
+  <a class="tab" href="#risks">Risks & Impact</a>
+  <a class="tab" href="#governance">Governance</a>
+  <a class="tab" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">Decision Record</a>
+</nav>
+
+<section id="overview" class="grid three section">
+  <div class="card compact"><h3>Variants</h3><div class="metric-value">{{ decision.variants|length }}</div></div>
+  <div class="card compact"><h3>Scenarios</h3><div class="metric-value">{{ decision.scenarios|length }}</div></div>
+  <div class="card compact"><h3>Governance</h3>{% set status = decision.status %}{% include 'components/governance_state.html' %}</div>
+</section>
+
+<section id="variants" class="grid two section">
+  <div class="card">
+    <h2>Variante anlegen</h2>
+    <form method="post" action="{{ url_for('ui.create_variant', decision_id=decision.id) }}">
+      <label>Name</label><input name="name" required placeholder="Variante A">
+      <label>Beschreibung</label><textarea name="description" placeholder="Was unterscheidet diese Variante?"></textarea>
+      <div class="form-row"><div><label>Geschätzte Kosten</label><input name="estimated_cost" type="number" step="0.01" min="0" value="0"></div><div><label>Erwarteter Nutzen</label><input name="expected_benefit" type="number" step="0.01" min="0" value="0"></div></div>
+      <label>Created by</label><input name="created_by" value="system">
+      <button class="btn" type="submit">Variante speichern</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Varianten</h2>
+    {% if decision.variants %}
+      <div class="table-wrap"><table><thead><tr><th>Variante</th><th>Kosten</th><th>Nutzen</th><th>Status</th></tr></thead><tbody>{% for variant in decision.variants %}<tr><td><strong>{{ variant.name }}</strong><br><span class="muted">{{ variant.description or '' }}</span></td><td>{{ '%.2f'|format(variant.estimated_cost|float) }}</td><td>{{ '%.2f'|format(variant.expected_benefit|float) }}</td><td>{% set status = variant.status %}{% include 'components/status_badge.html' %}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}
+      {% set title = 'Noch keine Varianten' %}{% set text = 'Varianten sind die Grundlage für Vergleich, Simulation und Governance.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section id="scenarios" class="grid two section">
+  <div class="card">
+    <h2>Szenario pro Variante anlegen</h2>
+    {% if decision.variants %}
+    <form method="post" action="{{ url_for('ui.create_scenario', decision_id=decision.id) }}">
+      <label>Variante</label><select name="variant_id" required>{% for variant in decision.variants %}<option value="{{ variant.id }}">{{ variant.name }}</option>{% endfor %}</select>
+      <label>Name</label><input name="name" required placeholder="Baseline / Zielbild / konservativ">
+      <label>Beschreibung</label><textarea name="description"></textarea>
+      <div class="form-row three"><div><label>Fallzahl</label><input name="case_volume" type="number" min="0" value="100"></div><div><label>Minuten/Fall</label><input name="processing_minutes_per_case" type="number" step="0.01" min="0" value="15"></div><div><label>Stundenkosten</label><input name="hourly_cost" type="number" step="0.01" min="0" value="80"></div></div>
+      <label>Created by</label><input name="created_by" value="system">
+      <button class="btn" type="submit">Szenario speichern</button>
+    </form>
+    {% else %}
+      {% set title = 'Zuerst Variante anlegen' %}{% set text = 'Szenarien brauchen eine Variante, damit der Vergleich belastbar bleibt.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Szenarien & Simulation</h2>
+    {% if decision.scenarios %}
+      <div class="table-wrap"><table><thead><tr><th>Szenario</th><th>Variante</th><th>Parameter</th><th>Simulation</th><th>Aktion</th></tr></thead><tbody>{% for scenario in decision.scenarios %}<tr><td><strong>{{ scenario.name }}</strong><br><span class="muted">{{ scenario.description or '' }}</span></td><td>{{ scenario.variant.name }}</td><td>{{ scenario.case_volume }} Fälle · {{ scenario.processing_minutes_per_case }} Min/Fall · {{ scenario.hourly_cost }} /h</td><td>{% set simulation = scenario.simulation_runs[-1] if scenario.simulation_runs else none %}{% include 'components/simulation_summary.html' %}</td><td><form method="post" action="{{ url_for('ui.simulate_scenario', scenario_id=scenario.id) }}"><button class="btn small" type="submit">Simulation starten</button></form></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}
+      {% set title = 'Noch keine Szenarien' %}{% set text = 'Erfasse Szenarien, um deterministische Simulationen und Impact Assessments zu erzeugen.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section id="risks" class="grid two section">
+  <div class="card">
+    <h2>Risk Assessment erfassen</h2>
+    <form method="post" action="{{ url_for('ui.create_risk', decision_id=decision.id) }}">
+      <label>Risiko</label><textarea name="summary" required placeholder="z. B. Akzeptanzrisiko in Fachbereichen"></textarea>
+      <label>Schweregrad</label><select name="severity"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+      <label>Mitigation</label><textarea name="mitigation" placeholder="Pilot, Schulung, Governance Gate"></textarea>
+      <label>Created by</label><input name="created_by" value="system">
+      <button class="btn" type="submit">Risk speichern</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Impact & Risiken</h2>
+    {% if has_impacts or decision.risk_assessments %}
+      <div class="grid">
+      {% for row in comparison_rows %}
+        {% if row.impact %}<div class="card compact"><strong>{{ row.variant.name }} · {{ row.scenario.name }}</strong><p>Net Impact: {{ '%.2f'|format(row.impact.net_impact|float) }}</p>{% set confidence = row.confidence %}{% set score = row.confidence_score %}{% include 'components/confidence_indicator.html' %}</div>{% endif %}
+      {% endfor %}
+      {% for risk in decision.risk_assessments %}<div class="card compact">{% include 'components/risk_indicator.html' %}<p>{{ risk.summary }}</p><p class="muted">{{ risk.mitigation or 'No mitigation captured yet.' }}</p></div>{% endfor %}
+      </div>
+    {% else %}
+      {% set title = 'Noch keine Impact- oder Risikoangaben' %}{% set text = 'Starte eine Simulation und erfasse Risiken, damit Entscheidungsgrundlagen sichtbar werden.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section id="governance" class="grid two section">
+  <div class="card">
+    <h2>Approval erfassen</h2>
+    <form method="post" action="{{ url_for('ui.create_approval', decision_id=decision.id) }}">
+      <label>Approved by</label><input name="approved_by" required placeholder="Architecture Board">
+      <label>Status</label><select name="status"><option value="approved">Approved</option><option value="needs_review">Needs Review</option><option value="rejected">Rejected</option></select>
+      <label>Kommentar</label><textarea name="comment"></textarea>
+      <label>Created by</label><input name="created_by" value="system">
+      <button class="btn" type="submit">Approval speichern</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Decision Record</h2>
+    <p class="muted">Der Record bündelt die Entscheidungsgrundlage. AI advisory did not decide.</p>
+    <form method="post" action="{{ url_for('ui.create_record', decision_id=decision.id) }}"><input type="hidden" name="created_by" value="system"><button class="btn secondary" type="submit">Decision Record erzeugen</button></form>
+    {% if latest_record %}<p><a class="btn ghost" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">Letzten Record anzeigen</a></p>{% endif %}
+  </div>
+</section>
+{% endblock %}
