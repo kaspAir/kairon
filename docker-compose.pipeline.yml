@@ -1,0 +1,28 @@
+services:
+  kairon-db:
+    image: postgres:16
+    container_name: kairon-pipeline-db
+    environment:
+      POSTGRES_DB: kairon
+      POSTGRES_USER: kairon
+      POSTGRES_PASSWORD: kairon_int_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - kairon_pipeline_db_data:/var/lib/postgresql/data
+
+  kairon-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kairon-pipeline-app
+    environment:
+      FLASK_ENV: pipeline
+      DATABASE_URL: postgresql://kairon:kairon_int_password@kairon-db:5432/kairon
+    ports:
+      - "5001:5000"
+    depends_on:
+      - kairon-db
+
+volumes:
+  kairon_pipeline_db_data:
