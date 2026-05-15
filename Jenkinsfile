@@ -12,28 +12,28 @@ pipeline {
         stage('Build Docker Environment') {
             steps {
                 echo 'Build KAIRON integration environment'
-                bat 'docker compose -f docker-compose.integration.yml build'
+                sh 'docker compose -f docker-compose.integration.yml build'
             }
         }
 
         stage('Start Integration Environment') {
             steps {
                 echo 'Start KAIRON integration environment'
-                bat 'docker compose -f docker-compose.integration.yml up -d'
+                sh 'docker compose -f docker-compose.integration.yml up -d'
             }
         }
 
         stage('Smoke Test') {
             steps {
                 echo 'Check KAIRON health endpoint'
-                bat 'powershell -Command "Invoke-RestMethod http://localhost:5000/health"'
+                sh 'python - <<PY\nimport urllib.request\nimport json\nresponse = urllib.request.urlopen("http://kairon-app-int:5000/health")\ndata = json.loads(response.read().decode())\nassert data["status"] == "ok"\nprint("KAIRON health check OK")\nPY'
             }
         }
 
         stage('Regression Tests') {
             steps {
                 echo 'Run regression tests'
-                bat 'docker compose -f docker-compose.integration.yml exec -T kairon-app pytest tests/regression'
+                sh 'docker compose -f docker-compose.integration.yml exec -T kairon-app pytest tests/regression'
             }
         }
     }
