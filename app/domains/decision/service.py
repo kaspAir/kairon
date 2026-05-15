@@ -86,4 +86,19 @@ class DecisionService:
                 {"id": r.id, "record_text": r.record_text, "created_at": r.created_at.isoformat()}
                 for r in decision.decision_records
             ],
+            "observation_records": [
+                {
+                    "id": observation.id,
+                    "expected_benefit": float(observation.expected_benefit),
+                    "actual_benefit": float(observation.actual_benefit),
+                    "expected_cost": float(observation.expected_cost),
+                    "actual_cost": float(observation.actual_cost),
+                    "expected_risks": observation.expected_risks,
+                    "actual_risks": observation.actual_risks,
+                    "comment": observation.comment,
+                    "observed_at": observation.observed_at.isoformat(),
+                    "status": observation.status,
+                }
+                for observation in decision.observation_records
+            ],
         }
