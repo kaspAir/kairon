@@ -175,3 +175,33 @@ def test_api_can_create_observation_record():
     body = observation_response.json()
     assert body["created_by"] == "api-test"
     assert body["status"] == "observed"
+
+
+def test_ui_can_create_context_object_in_decision_workspace():
+    session = requests.Session()
+    response = session.post(
+        f"{BASE_URL}/ui/decisions",
+        data={"title": "Context UI decision", "description": "Structured context", "created_by": "ui-test"},
+        allow_redirects=False,
+    )
+    assert response.status_code == 302
+    detail_url = response.headers["Location"]
+    detail_path = detail_url if detail_url.startswith("/ui/") else detail_url.replace(BASE_URL, "")
+
+    create_context = session.post(
+        f"{BASE_URL}{detail_path}/context-objects",
+        data={
+            "context_type": "organization",
+            "name": "Finance shared services",
+            "description": "Responsible organization context",
+            "source": "operating model",
+            "owner": "CFO Office",
+            "confidence": "high",
+        },
+        allow_redirects=True,
+    )
+
+    assert create_context.status_code == 200
+    assert "Finance shared services" in create_context.text
+    assert "Organization Context" in create_context.text
+    assert "Confidence High" in create_context.text

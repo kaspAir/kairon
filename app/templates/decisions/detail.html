@@ -72,17 +72,47 @@
   <div class="section-heading">
     <div>
       <div class="eyebrow">Decision Context</div>
-      <h2>Kontextmodule vorbereitet, bewusst schlank gehalten</h2>
-      <p class="muted">Diese Panels schaffen stabile Andockpunkte für Prozess-, Organisations-, Ressourcen-/FTE- und Risiko-Kontext. Im MVP bleiben sie strukturiert und erklärend, damit spätere Module ergänzt werden können, ohne den Workspace umzubauen.</p>
+      <h2>Entscheidungsrelevante Kontextobjekte</h2>
+      <p class="muted">Kontextobjekte halten Prozess-, Organisations-, Ressourcen-, Risiko-, Constraint-, Kosten-, Metrik-, Annahmen- und externe Einflussfaktoren direkt an der Decision fest. So bleibt die Decision das Zentrum; spätere Spezialmodule können sauber andocken.</p>
+    </div>
+    <div class="metric-pill">{{ context_summary.total }} Context Object(s)</div>
+  </div>
+
+  <div class="grid two context-workspace">
+    <div class="card compact secondary-panel">
+      <h3>Context Object erfassen</h3>
+      <p class="muted">MVP-schlank: Erfasse die Entscheidungsgrundlage strukturiert, ohne BPMN-, HR- oder Risikomanagement-Suite einzubauen.</p>
+      <form method="post" action="{{ url_for('ui.create_context_object', decision_id=decision.id) }}">
+        <label>Context Type</label>
+        <select name="context_type" required>
+          {% for value, label in context_summary.type_options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+        <label>Name</label><input name="name" required placeholder="z. B. Current invoice approval process">
+        <label>Beschreibung</label><textarea name="description" placeholder="Was ist für diese Entscheidung relevant?"></textarea>
+        <div class="form-row two">
+          <div><label>Source</label><input name="source" placeholder="Workshop, ERP report, policy"></div>
+          <div><label>Owner</label><input name="owner" placeholder="Finance Process Owner"></div>
+        </div>
+        <label>Scenario optional</label>
+        <select name="scenario_id">
+          <option value="">Decision-level context</option>
+          {% for scenario in decision.scenarios %}<option value="{{ scenario.id }}">{{ scenario.name }}</option>{% endfor %}
+        </select>
+        <label>Confidence</label>
+        <select name="confidence">
+          {% for confidence_value in context_summary.confidence_options %}<option value="{{ confidence_value }}" {% if confidence_value == 'medium' %}selected{% endif %}>{{ confidence_value|title }}</option>{% endfor %}
+        </select>
+        <button class="btn secondary" type="submit">Context Object speichern</button>
+      </form>
+    </div>
+
+    <div class="context-panel-grid">
+      {% for panel in context_panels %}
+        {% include 'components/context_panel.html' %}
+      {% endfor %}
     </div>
   </div>
-  <div class="grid two">
-    {% for panel in context_panels %}
-      {% include 'components/context_panel.html' %}
-    {% endfor %}
-  </div>
 </section>
-
 <section id="variants" class="grid two section">
   <div class="card">
     <h2>Variante anlegen</h2>

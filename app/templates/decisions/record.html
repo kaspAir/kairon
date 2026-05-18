@@ -17,6 +17,7 @@
     <p><strong>Scenarios:</strong> {{ decision.scenarios|length }}</p>
     <p><strong>Risk Assessments:</strong> {{ decision.risk_assessments|length }}</p>
     <p><strong>Approval Records:</strong> {{ decision.approval_records|length }}</p>
+    <p><strong>Context Objects:</strong> {{ context_summary.total }}</p>
     <form method="post" action="{{ url_for('ui.create_record', decision_id=decision.id) }}"><input type="hidden" name="created_by" value="system"><button class="btn" type="submit">Neuen Record erzeugen</button></form>
   </div>
   <div class="card">
@@ -26,6 +27,22 @@
       <div class="record-block">{{ latest_record.record_text }}</div>
     {% else %}
       {% set title = 'Noch kein Decision Record erzeugt' %}{% set text = 'Erzeuge einen Record, sobald Varianten, Simulationen, Risiken und Approval-Status belastbar dokumentiert sind.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="card">
+    <h2>Decision Context Objects</h2>
+    <p class="muted">Diese Kontextobjekte werden vorbereitend als Entscheidungsgrundlage in den Decision Record einbezogen.</p>
+    {% if context_summary.total %}
+      <div class="grid two">
+        {% for panel in context_panels %}
+          {% if panel['items'] %}{% include 'components/context_panel.html' %}{% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {% set title = 'Noch keine Context Objects im Record' %}{% set text = 'Erfasse Process-, Organization-, Workforce-, Risk-, Constraint-, Cost-, Metric-, Assumption- oder External-Factor-Kontext, damit der Decision Record später vollständiger auditierbar wird.' %}{% include 'components/empty_state.html' %}
     {% endif %}
   </div>
 </section>

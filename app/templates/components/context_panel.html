@@ -7,11 +7,23 @@
     <span class="badge draft">{{ panel.prepared_for }}</span>
   </div>
   {% if panel['items'] %}
-    <ul class="context-list">
+    <div class="context-object-list">
       {% for item in panel['items'] %}
-        <li>{{ item }}</li>
+        <div class="context-object">
+          <div class="context-object-title">
+            <strong>{{ item.name }}</strong>
+            {% set confidence = item.confidence %}{% include 'components/confidence_indicator.html' %}
+          </div>
+          {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+          <p class="muted">
+            {% if item.owner %}Owner: {{ item.owner }}{% endif %}
+            {% if item.owner and item.source %} · {% endif %}
+            {% if item.source %}Source: {{ item.source }}{% endif %}
+            {% if item.scenario_id %} · Scenario-linked{% endif %}
+          </p>
+        </div>
       {% endfor %}
-    </ul>
+    </div>
   {% else %}
     {% set title = panel.empty_title %}
     {% set text = panel.empty_text %}

@@ -10,6 +10,8 @@ from flask import Blueprint, current_app, redirect, render_template, request, ur
 
 from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
+from app.domains.context.service import DecisionContextService
+from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFIDENCE_VALUES
 from app.domains.assessment.service import RiskAssessmentService
 from app.domains.decision.models import Decision
 from app.domains.decision.service import DecisionService
@@ -287,54 +289,64 @@ def _scenario_rows(decision: Decision) -> list[dict]:
     ]
 
 
-def _context_panels(decision: Decision) -> list[dict]:
-    """Prepare future workspace modules without implementing full modeling capabilities.
+def _context_object_view_model(obj) -> dict:
+    return {
+        "id": obj.id,
+        "context_type": obj.context_type,
+        "type_label": CONTEXT_TYPE_LABELS.get(obj.context_type, obj.context_type.replace("_", " ").title()),
+        "name": obj.name,
+        "description": obj.description,
+        "source": obj.source,
+        "owner": obj.owner,
+        "confidence": obj.confidence,
+        "scenario_id": obj.scenario_id,
+        "valid_from": obj.valid_from,
+        "valid_to": obj.valid_to,
+        "metadata_json": obj.metadata_json or {},
+    }
 
-    The MVP keeps these panels read-only and explanatory. Later slices can replace the
-    `items`/`empty_text` values with real Process, Organization, Resource/FTE and Risk
-    domain data without changing the Decision Workspace layout.
-    """
-    risk_count = len(decision.risk_assessments)
-    scenario_count = len(decision.scenarios)
+
+def _context_panels(decision: Decision) -> list[dict]:
+    grouped = {context_type: [] for context_type in CONTEXT_TYPES}
+    for obj in decision.context_objects:
+        grouped.setdefault(obj.context_type, []).append(_context_object_view_model(obj))
+
+    definitions = [
+        ("process", "Process Context", "Prozessbezug der Decision", "Noch kein Prozesskontext verknüpft", "Erfasse Prozesslandkarte, Prozessversion, betroffene Prozessschritte oder BPMN-Referenzen als Kontext. Eine vollständige BPMN-Engine folgt bewusst später."),
+        ("organization", "Organization Context", "Organisationseinheiten und Verantwortlichkeiten", "Noch kein Organisationskontext erfasst", "Erfasse betroffene Organisationseinheiten, Rollen, Verantwortlichkeiten oder Governance-Gremien. Ein Organigramm-Editor ist im MVP bewusst nicht enthalten."),
+        ("workforce", "Resource / FTE Context", "Kapazität, Ressourcen und FTE-Wirkung", "Noch keine Ressourcen- oder FTE-Grundlage", "Erfasse FTE-Annahmen, Kapazitätsbezug oder Skill-/Rollenabhängigkeiten als strukturierte Entscheidungsgrundlage."),
+        ("risk", "Risk Management", "Risiken, Unsicherheiten und Nebenwirkungen", "Noch keine Risiken bewertet", "Erfasse Risiken oder Unsicherheiten als Kontextobjekte. Das ergänzt Risk Assessments, ersetzt aber noch kein komplexes Risikomanagement."),
+        ("constraint", "Constraint Context", "Rahmenbedingungen und Einschränkungen", "Noch keine Constraints erfasst", "Erfasse Budgetgrenzen, regulatorische Vorgaben, Kapazitätsgrenzen oder Vier-Augen-Prinzipien als entscheidungsrelevante Constraints."),
+        ("cost", "Cost Context", "Kostenannahmen und Kostentreiber", "Noch kein Kostenkontext erfasst", "Erfasse Kostenquellen, Kostensätze oder Annahmen, damit spätere Simulationen belastbarer werden."),
+        ("metric", "Metric Context", "Kennzahlen und Zielgrössen", "Noch keine Metriken verknüpft", "Erfasse KPIs, Baselines oder Targets, die für die Bewertung dieser Decision relevant sind."),
+        ("assumption", "Assumption Context", "Annahmen und Schätzwerte", "Noch keine Annahmen erfasst", "Erfasse explizite Annahmen mit Quelle, Owner und Confidence. Später können daraus Assumption Sets entstehen."),
+        ("external_factor", "External Factor Context", "Externe Einflussfaktoren", "Noch keine externen Faktoren erfasst", "Erfasse Markt-, Lieferanten-, Rechts- oder Technologieeinflüsse, die die Entscheidung verändern können."),
+    ]
     return [
         {
-            "key": "process-context",
-            "title": "Process Context",
-            "summary": "Prozessbezug der Decision",
-            "items": [],
-            "empty_title": "Noch kein Prozesskontext verknüpft",
-            "empty_text": "Später können hier Prozesslandkarte, Prozessversion, relevante Prozessschritte oder BPMN-Referenzen angebunden werden. Im MVP bleibt der Kontext bewusst beschreibend, damit KAIRON keine reine BPM-Canvas wird.",
-            "prepared_for": "Process Domain",
-        },
-        {
-            "key": "organization-context",
-            "title": "Organization Context",
-            "summary": "Organisationseinheiten und Verantwortlichkeiten",
-            "items": [],
-            "empty_title": "Noch kein Organisationskontext erfasst",
-            "empty_text": "Später können Organisationseinheiten, Rollen, Verantwortlichkeiten und Freigabegremien ergänzt werden. Der Workspace ist bereits darauf vorbereitet, ohne einen Organigramm-Editor einzubauen.",
-            "prepared_for": "Organization Domain",
-        },
-        {
-            "key": "resource-context",
-            "title": "Resource / FTE Context",
-            "summary": "Kapazität, Ressourcen und FTE-Wirkung",
-            "items": [f"{scenario_count} Szenario(s) mit Fallzahl, Bearbeitungszeit und Stundenkosten vorbereitet"] if scenario_count else [],
-            "empty_title": "Noch keine Ressourcen- oder FTE-Grundlage",
-            "empty_text": "Erfasse Szenarien mit Fallzahlen, Bearbeitungszeiten und Stundenkosten. Später können daraus FTE-Bedarf, Kapazitätsgrenzen und Engpässe sauber abgeleitet werden.",
-            "prepared_for": "Resource & Capacity Domain",
-        },
-        {
-            "key": "risk-management",
-            "title": "Risk Management",
-            "summary": "Risiken, Unsicherheiten und Nebenwirkungen",
-            "items": [f"{risk_count} Risk Assessment(s) erfasst"] if risk_count else [],
-            "empty_title": "Noch keine Risiken bewertet",
-            "empty_text": "Erfasse Risiken, Unsicherheiten oder Nebenwirkungen, um die Entscheidung governancefähig vergleichbar zu machen. Komplexes Risikomanagement folgt später bewusst als eigenes Modul.",
-            "prepared_for": "Risk Management",
-        },
+            "key": f"context-{context_type}",
+            "context_type": context_type,
+            "title": title,
+            "summary": summary,
+            "items": grouped.get(context_type, []),
+            "empty_title": empty_title,
+            "empty_text": empty_text,
+            "prepared_for": CONTEXT_TYPE_LABELS.get(context_type, context_type),
+        }
+        for context_type, title, summary, empty_title, empty_text in definitions
     ]
 
+
+def _context_summary(decision: Decision) -> dict:
+    counts = {context_type: 0 for context_type in CONTEXT_TYPES}
+    for obj in decision.context_objects:
+        counts[obj.context_type] = counts.get(obj.context_type, 0) + 1
+    return {
+        "total": len(decision.context_objects),
+        "counts": counts,
+        "type_options": [(context_type, CONTEXT_TYPE_LABELS[context_type]) for context_type in CONTEXT_TYPES],
+        "confidence_options": CONFIDENCE_VALUES,
+    }
 
 def _observation_records(decision: Decision) -> list[dict]:
     service = ObservationService(None)
@@ -360,6 +372,7 @@ def _workspace_view_model(decision: Decision) -> dict:
         "decision": decision,
         "decision_card": _decision_card_view_model(decision),
         "context_panels": _context_panels(decision),
+        "context_summary": _context_summary(decision),
         "observation_context": _observation_context(decision),
         "comparison_rows": rows,
         "scenario_rows": _scenario_rows(decision),
@@ -532,6 +545,25 @@ def change_decision_status(decision_id):
             return redirect(url_for("ui.decision_detail", decision_id=decision.id, message=f"Status changed to {label}", level="success") + "#lifecycle")
     except ValueError as exc:
         return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error") + "#lifecycle")
+
+
+@bp.post("/decisions/<decision_id>/context-objects")
+def create_context_object(decision_id):
+    try:
+        with session_scope() as session:
+            DecisionContextService(session).create_context_object(
+                decision_id=decision_id,
+                context_type=request.form.get("context_type", ""),
+                scenario_id=request.form.get("scenario_id") or None,
+                name=request.form.get("name", ""),
+                description=request.form.get("description") or None,
+                source=request.form.get("source") or None,
+                owner=request.form.get("owner") or None,
+                confidence=request.form.get("confidence", "medium"),
+            )
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Context object saved", level="success") + "#context")
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error") + "#context")
 
 
 @bp.post("/decisions/<decision_id>/variants")
