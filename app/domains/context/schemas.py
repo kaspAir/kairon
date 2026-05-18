@@ -73,10 +73,41 @@ class RiskContextResponseSchema(Schema):
     scenario_id = fields.String(allow_none=True)
     context_type = fields.String(required=True)
     name = fields.String(required=True)
+    summary = fields.Method("get_summary")
     description = fields.String(allow_none=True)
     source = fields.String(allow_none=True)
     owner = fields.String(allow_none=True)
     confidence = fields.String(required=True)
+    probability = fields.Method("get_probability")
+    impact = fields.Method("get_impact")
+    severity = fields.Method("get_severity")
+    impact_area = fields.Method("get_impact_area")
+    mitigation = fields.Method("get_mitigation")
+    created_by = fields.Method("get_created_by")
     metadata_json = fields.Dict(allow_none=True)
     created_at = fields.DateTime(required=True)
     updated_at = fields.DateTime(required=True)
+
+    def _metadata(self, obj):
+        return obj.metadata_json or {}
+
+    def get_summary(self, obj):
+        return obj.name
+
+    def get_probability(self, obj):
+        return self._metadata(obj).get("probability")
+
+    def get_impact(self, obj):
+        return self._metadata(obj).get("impact")
+
+    def get_severity(self, obj):
+        return self._metadata(obj).get("severity")
+
+    def get_impact_area(self, obj):
+        return self._metadata(obj).get("impact_area")
+
+    def get_mitigation(self, obj):
+        return self._metadata(obj).get("mitigation")
+
+    def get_created_by(self, obj):
+        return self._metadata(obj).get("created_by", "system")

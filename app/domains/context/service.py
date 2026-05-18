@@ -89,6 +89,7 @@ class DecisionContextService:
         owner: str | None = None,
         confidence: str = "medium",
         scenario_id: str | None = None,
+        created_by: str = "system",
         taxonomy: ContextTaxonomy | None = None,
     ) -> DecisionContextObject:
         taxonomy = taxonomy or get_risk_taxonomy()
@@ -105,6 +106,7 @@ class DecisionContextService:
             "mitigation": mitigation,
             "risk_owner": risk_owner or owner,
             "review_required": bool(review_required),
+            "created_by": created_by or "system",
         }
 
         return self.create_context_object(

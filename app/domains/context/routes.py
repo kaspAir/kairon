@@ -49,7 +49,6 @@ def list_risk_contexts(decision_id):
 @bp.post("/decisions/<decision_id>/risks")
 def create_risk_context(decision_id):
     data = load_json(RiskContextCreateSchema(), payload())
-    data.pop("created_by", None)
     with session_scope() as session:
         risk = DecisionContextService(session).create_risk_context(decision_id=decision_id, **data)
         return jsonify(RiskContextResponseSchema().dump(risk)), 201
