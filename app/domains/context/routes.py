@@ -4,7 +4,10 @@ from app.domains.context.schemas import (
     DecisionContextObjectCreateSchema,
     DecisionContextObjectResponseSchema,
     DecisionContextObjectUpdateSchema,
+    RiskContextCreateSchema,
+    RiskContextResponseSchema,
 )
+from app.domains.context.risk_config import get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
 from app.shared.database import session_scope
 from app.shared.schemas import load_json
@@ -29,6 +32,27 @@ def create_context_object(decision_id):
     with session_scope() as session:
         context_object = DecisionContextService(session).create_context_object(decision_id=decision_id, **data)
         return jsonify(DecisionContextObjectResponseSchema().dump(context_object)), 201
+
+
+@bp.get("/decisions/<decision_id>/risks")
+def list_risk_contexts(decision_id):
+    with session_scope() as session:
+        risks = DecisionContextService(session).list_risks_for_decision(decision_id)
+        taxonomy = get_risk_taxonomy().as_dict()
+        return jsonify({
+            "items": RiskContextResponseSchema(many=True).dump(risks),
+            "summary": DecisionContextService(session).summarize_risks_for_decision(decision_id),
+            "taxonomy": taxonomy,
+        })
+
+
+@bp.post("/decisions/<decision_id>/risks")
+def create_risk_context(decision_id):
+    data = load_json(RiskContextCreateSchema(), payload())
+    data.pop("created_by", None)
+    with session_scope() as session:
+        risk = DecisionContextService(session).create_risk_context(decision_id=decision_id, **data)
+        return jsonify(RiskContextResponseSchema().dump(risk)), 201
 
 
 @bp.patch("/context-objects/<context_object_id>")

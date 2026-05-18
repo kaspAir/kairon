@@ -45,3 +45,38 @@ class DecisionContextObjectResponseSchema(Schema):
     metadata_json = fields.Dict(allow_none=True)
     created_at = fields.DateTime(required=True)
     updated_at = fields.DateTime(required=True)
+
+
+class RiskContextCreateSchema(Schema):
+    # `summary` is accepted for backwards compatibility with the earlier MVP API.
+    name = fields.String(load_default=None, allow_none=True)
+    summary = fields.String(load_default=None, allow_none=True)
+    description = fields.String(load_default=None, allow_none=True)
+    category = fields.String(load_default="implementation")
+    probability = fields.String(load_default=None, allow_none=True)
+    impact = fields.String(load_default=None, allow_none=True)
+    severity = fields.String(load_default=None, allow_none=True)
+    impact_area = fields.String(load_default=None, allow_none=True)
+    mitigation = fields.String(load_default=None, allow_none=True)
+    risk_owner = fields.String(load_default=None, allow_none=True)
+    review_required = fields.Boolean(load_default=False)
+    source = fields.String(load_default=None, allow_none=True)
+    owner = fields.String(load_default=None, allow_none=True)
+    confidence = fields.String(load_default="medium", validate=validate.OneOf(CONFIDENCE_VALUES))
+    scenario_id = fields.String(load_default=None, allow_none=True)
+    created_by = fields.String(load_default="system")
+
+
+class RiskContextResponseSchema(Schema):
+    id = fields.String(required=True)
+    decision_id = fields.String(required=True)
+    scenario_id = fields.String(allow_none=True)
+    context_type = fields.String(required=True)
+    name = fields.String(required=True)
+    description = fields.String(allow_none=True)
+    source = fields.String(allow_none=True)
+    owner = fields.String(allow_none=True)
+    confidence = fields.String(required=True)
+    metadata_json = fields.Dict(allow_none=True)
+    created_at = fields.DateTime(required=True)
+    updated_at = fields.DateTime(required=True)

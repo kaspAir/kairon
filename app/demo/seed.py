@@ -3,8 +3,10 @@ from __future__ import annotations
 from datetime import datetime
 
 from app.domains.assessment.models import RiskAssessment
+from app.domains.context.models import DecisionContextObject
 from app.domains.decision.models import Decision, DecisionVariant
-from app.domains.governance.models import ApprovalRecord, DecisionRecord
+from app.domains.governance.models import ApprovalRecord
+from app.domains.governance.service import GovernanceService
 from app.domains.observation.service import ObservationService
 from app.domains.scenario.models import Scenario
 from app.domains.simulation.service import SimulationService
@@ -146,6 +148,104 @@ def seed_golden_demo(session) -> Decision:
     ]
     session.add_all(risks)
 
+    context_objects = [
+        DecisionContextObject(
+            decision_id=decision.id,
+            context_type="process",
+            name="Current invoice intake and approval process",
+            description="Invoices are received through email and supplier portals, validated manually and routed to finance approvers.",
+            source="Finance operations workshop",
+            owner="Finance Process Owner",
+            confidence="high",
+        ),
+        DecisionContextObject(
+            decision_id=decision.id,
+            scenario_id=scenarios[1].id,
+            context_type="workforce",
+            name="Accounts payable specialist capacity",
+            description="Manual validation currently consumes roughly 4.2 FTE across standard and exception handling work.",
+            source="Capacity estimate based on 48,000 invoices/year",
+            owner="AP Operations Lead",
+            confidence="medium",
+        ),
+        DecisionContextObject(
+            decision_id=decision.id,
+            context_type="organization",
+            name="Finance governance gate",
+            description="High-value invoices and low-confidence AI suggestions remain under explicit human approval.",
+            source="Architecture Board decision",
+            owner="Architecture Board",
+            confidence="high",
+        ),
+        DecisionContextObject(
+            decision_id=decision.id,
+            context_type="constraint",
+            name="No autonomous payment release",
+            description="AI may recommend routing and extraction results, but payment release remains a human decision.",
+            source="AI governance principle",
+            owner="Governance Lead",
+            confidence="high",
+        ),
+        DecisionContextObject(
+            decision_id=decision.id,
+            context_type="assumption",
+            name="Supplier invoice format stability",
+            description="Automation benefit assumes the top suppliers keep invoice formats stable during the pilot.",
+            source="Pilot assumption",
+            owner="Finance Process Owner",
+            confidence="medium",
+        ),
+        DecisionContextObject(
+            decision_id=decision.id,
+            context_type="metric",
+            name="Cycle time and exception rate",
+            description="Primary KPI focus: reduce processing cycle time while keeping exception rate transparent.",
+            source="MVP KPI definition",
+            owner="Decision Owner",
+            confidence="medium",
+        ),
+        DecisionContextObject(
+            decision_id=decision.id,
+            context_type="risk",
+            name="Supplier data quality risk",
+            description="Supplier invoice formats vary by region and can reduce AI extraction reliability during rollout.",
+            source="Finance pilot risk review",
+            owner="AP Operations Lead",
+            confidence="high",
+            metadata_json={
+                "category": "data_quality",
+                "probability": "high",
+                "impact": "high",
+                "severity": "critical",
+                "impact_area": "operations",
+                "mitigation": "Start with top suppliers, monitor exception rate weekly and keep manual fallback paths.",
+                "risk_owner": "AP Operations Lead",
+                "review_required": True,
+            },
+        ),
+        DecisionContextObject(
+            decision_id=decision.id,
+            context_type="risk",
+            name="Human approval bypass risk",
+            description="Automation pressure may lead teams to treat AI suggestions as decisions instead of advisory inputs.",
+            source="AI governance review",
+            owner="Governance Lead",
+            confidence="medium",
+            metadata_json={
+                "category": "governance",
+                "probability": "medium",
+                "impact": "high",
+                "severity": "high",
+                "impact_area": "compliance",
+                "mitigation": "Route high-value, low-confidence and policy-sensitive invoices through mandatory human review.",
+                "risk_owner": "Governance Lead",
+                "review_required": True,
+            },
+        ),
+    ]
+    session.add_all(context_objects)
+    session.flush()
+
     approvals = [
         ApprovalRecord(
             decision_id=decision.id,
@@ -178,11 +278,7 @@ def seed_golden_demo(session) -> Decision:
         created_by=DEMO_CREATED_BY,
     )
 
-    record_text = (
-        "Golden demo decision record: AI-based invoice processing automation evaluated with variants, scenarios, "
-        "simulation runs, impact assessments, risks, approvals and first observation. AI advisory did not decide."
-    )
-    session.add(DecisionRecord(decision_id=decision.id, record_text=record_text, status="recorded", created_by=DEMO_CREATED_BY))
+    GovernanceService(session).create_decision_record(decision.id, created_by=DEMO_CREATED_BY)
     decision.status = "reassessment_needed"
     session.flush()
     return decision
