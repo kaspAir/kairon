@@ -1,0 +1,20 @@
+<article class="card compact context-panel" id="{{ panel.key }}">
+  <div class="context-panel-header">
+    <div>
+      <h3>{{ panel.title }}</h3>
+      <p class="muted">{{ panel.summary }}</p>
+    </div>
+    <span class="badge draft">{{ panel.prepared_for }}</span>
+  </div>
+  {% if panel['items'] %}
+    <ul class="context-list">
+      {% for item in panel['items'] %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {% set title = panel.empty_title %}
+    {% set text = panel.empty_text %}
+    {% include 'components/empty_state.html' %}
+  {% endif %}
+</article>

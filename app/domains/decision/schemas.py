@@ -41,3 +41,19 @@ class DecisionVariantResponseSchema(Schema):
     updated_at = fields.DateTime(required=True)
     version = fields.Integer(required=True)
     created_by = fields.String(required=True)
+
+
+
+class DecisionStatusTransitionSchema(Schema):
+    status = fields.String(required=True, validate=non_empty)
+    created_by = fields.String(load_default="system")
+
+
+class DecisionStatusTransitionResponseSchema(Schema):
+    id = fields.String(required=True)
+    title = fields.String(required=True)
+    status = fields.String(required=True)
+    previous_status = fields.String(required=True)
+    allowed_next_statuses = fields.List(fields.String(), required=True)
+    updated_at = fields.DateTime(required=True)
+    version = fields.Integer(required=True)

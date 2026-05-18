@@ -11,6 +11,8 @@ from app.shared.errors import register_error_handlers
 from app.shared.logging import configure_logging, register_request_logging
 from app.web.routes import api as core_bp
 from app.web.ui_routes import bp as ui_bp
+from app.demo.seed import seed_golden_demo
+from app.shared.database import session_scope
 
 
 def create_app(config_class=None):
@@ -26,6 +28,14 @@ def create_app(config_class=None):
     app.register_blueprint(ui_bp)
     _register_blueprints(app, url_prefix="/api")
     _register_blueprints(app, name_prefix="legacy")
+
+    @app.cli.command("seed-demo")
+    def seed_demo_command():
+        """Seed the Golden Demo decision case."""
+        with session_scope() as session:
+            decision = seed_golden_demo(session)
+            app.logger.info("Golden demo seed available", extra={"decision_id": decision.id})
+        print("Golden demo seed available")
 
     @app.teardown_appcontext
     def remove_session(exception=None):

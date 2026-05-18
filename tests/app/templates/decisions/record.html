@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · Decision Record · {{ decision.title }}{% endblock %}
+{% block content %}
+<section>
+  <div class="eyebrow">Auditierbarer Decision Record</div>
+  <div class="toolbar">
+    <div><h1>{{ decision.title }}</h1><p class="lead">Der Record dokumentiert die Entscheidungsgrundlage. AI advisory did not decide.</p></div>
+    <a class="btn ghost" href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}">Zum Workspace</a>
+  </div>
+</section>
+
+<section class="grid two section">
+  <div class="card">
+    <h2>Governance Snapshot</h2>
+    <p><strong>Status:</strong> {% set status = decision.status %}{% include 'components/status_badge.html' %}</p>
+    <p><strong>Variants:</strong> {{ decision.variants|length }}</p>
+    <p><strong>Scenarios:</strong> {{ decision.scenarios|length }}</p>
+    <p><strong>Risk Assessments:</strong> {{ decision.risk_assessments|length }}</p>
+    <p><strong>Approval Records:</strong> {{ decision.approval_records|length }}</p>
+    <form method="post" action="{{ url_for('ui.create_record', decision_id=decision.id) }}"><input type="hidden" name="created_by" value="system"><button class="btn" type="submit">Neuen Record erzeugen</button></form>
+  </div>
+  <div class="card">
+    <h2>Letzter Record</h2>
+    {% if latest_record %}
+      <p class="small muted">Created {{ latest_record.created_at.strftime('%Y-%m-%d %H:%M') }} by {{ latest_record.created_by }}</p>
+      <div class="record-block">{{ latest_record.record_text }}</div>
+    {% else %}
+      {% set title = 'Noch kein Decision Record erzeugt' %}{% set text = 'Erzeuge einen Record, sobald Varianten, Simulationen, Risiken und Approval-Status belastbar dokumentiert sind.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="card">
+    <h2>Entscheidungsgrundlagen</h2>
+    {% if comparison_rows %}
+    <div class="table-wrap"><table>
+      <thead><tr><th>Variante</th><th>Szenario</th><th>Simulation</th><th>Impact</th><th>Risiko</th><th>Confidence</th><th>Governance</th></tr></thead>
+      <tbody>
+      {% for row in comparison_rows %}
+        <tr>
+          <td>{{ row.variant.name }}</td>
+          <td>{{ row.scenario.name if row.scenario else 'No scenario yet' }}</td>
+          <td>{% set simulation = row.simulation %}{% include 'components/simulation_summary.html' %}</td>
+          <td>{% if row.impact %}Net {{ '%.2f'|format(row.impact.net_impact|float) }}{% else %}<span class="muted">No impact</span>{% endif %}</td>
+          <td>{% set risk = row.risk %}{% include 'components/risk_indicator.html' %}</td>
+          <td>{% set confidence = row.confidence %}{% set score = row.confidence_score %}{% include 'components/confidence_indicator.html' %}</td>
+          <td>{% set status = row.governance_status %}{% include 'components/status_badge.html' %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}
+      {% set title = 'Noch keine Vergleichsdaten' %}{% set text = 'Sobald Varianten und Szenarien bestehen, werden sie hier als Record-Grundlage angezeigt.' %}{% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

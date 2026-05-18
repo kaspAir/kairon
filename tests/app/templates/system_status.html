@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · System Status{% endblock %}
+{% block content %}
+<section class="hero-panel">
+  <div>
+    <div class="eyebrow">System Status</div>
+    <h1>Runtime, API und Pipeline sichtbar halten</h1>
+    <p class="lead">Diese Seite ist bewusst einfach: Sie zeigt Betriebsindikatoren für den MVP, ohne Monitoring- oder DevOps-Komplexität vorwegzunehmen.</p>
+  </div>
+  <div class="system-strip">
+    <span class="badge review">{{ status.environment }}</span>
+    <span class="badge {{ 'approved' if status.api_health == 'ok' else 'rejected' }}">API {{ status.api_health }}</span>
+    <span class="badge {{ 'approved' if status.db_status == 'ok' else 'rejected' }}">DB {{ status.db_status }}</span>
+  </div>
+</section>
+
+<section class="grid two section">
+  <div class="card">
+    <h2>Runtime</h2>
+    <div class="status-list">
+      <div><span>Environment</span><strong>{{ status.environment }}</strong></div>
+      <div><span>API Health</span><strong>{{ status.api_health }}</strong></div>
+      <div><span>DB Status</span><strong>{{ status.db_status }}</strong></div>
+      <div><span>Build Status</span><strong>{{ status.build_status }}</strong></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Pipeline Hinweis</h2>
+    <p class="muted">{{ status.pipeline_hint }}</p>
+    <p><a class="btn ghost" href="{{ url_for('api.health') }}">/health prüfen</a> <a class="btn ghost" href="{{ url_for('api.index') }}">/api öffnen</a></p>
+  </div>
+</section>
+{% endblock %}

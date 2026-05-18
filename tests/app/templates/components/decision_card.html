@@ -1,0 +1,36 @@
+<article class="decision-card">
+  <div class="decision-card-main">
+    <div class="toolbar compact-toolbar">
+      <h3><a href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}">{{ decision.title }}</a></h3>
+      {% set status = decision.status %}{% include 'components/status_badge.html' %}
+    </div>
+    <p class="muted">{{ decision.description or 'Noch kein Entscheidungskontext erfasst. Ergänze Ziel, Annahmen und Entscheidungsbedarf im Workspace.' }}</p>
+    <div class="decision-intel-grid">
+      <div><strong>{{ decision.variant_count }}</strong><span>Varianten</span></div>
+      <div><strong>{{ decision.scenario_count }}</strong><span>Szenarien</span></div>
+      <div><strong>{{ decision.risk_count }}</strong><span>Risiken</span></div>
+      <div>{% set confidence = decision.confidence %}{% include 'components/confidence_indicator.html' %}</div>
+    </div>
+    <div class="actions small muted">
+      <span>Created by {{ decision.created_by }}</span>
+      <span>·</span>
+      <span>{{ decision.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    </div>
+  </div>
+  <div class="decision-card-side">
+    <div class="side-block">
+      <span class="side-label">Letzter Simulation Status</span>
+      {% set status = decision.latest_simulation_status %}{% include 'components/status_badge.html' %}
+      {% set simulation = decision.latest_simulation %}{% include 'components/simulation_summary.html' %}
+    </div>
+    <div class="side-block">
+      <span class="side-label">Risikoindikator</span>
+      {% set risk = decision.dominant_risk %}{% include 'components/risk_indicator.html' %}
+    </div>
+    <div class="side-block">
+      <span class="side-label">Governance State</span>
+      {% set governance_state = decision.pending_governance_state %}{% include 'components/governance_state.html' %}
+    </div>
+    <a class="btn small" href="{{ url_for('ui.decision_detail', decision_id=decision.id) }}">Workspace öffnen</a>
+  </div>
+</article>

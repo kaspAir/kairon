@@ -6,8 +6,10 @@ from app.domains.decision.schemas import (
     DecisionResponseSchema,
     DecisionVariantCreateSchema,
     DecisionVariantResponseSchema,
+    DecisionStatusTransitionSchema,
 )
 from app.domains.decision.service import DecisionService
+from app.domains.decision.status import allowed_next_statuses
 from app.shared.database import session_scope
 from app.shared.schemas import load_json
 from app.shared.request_context import actor_from_request
@@ -48,6 +50,28 @@ def create_variant(decision_id):
             created_by=actor_from_request(data),
         )
         return jsonify(DecisionVariantResponseSchema().dump(variant)), 201
+
+
+@bp.post("/decisions/<decision_id>/status")
+def change_decision_status(decision_id):
+    data = load_json(DecisionStatusTransitionSchema(), payload())
+    with session_scope() as session:
+        service = DecisionService(session)
+        decision, previous_status = service.change_decision_status(
+            decision_id=decision_id,
+            target_status=data["status"],
+            changed_by=actor_from_request(data),
+        )
+        return jsonify({
+            "id": decision.id,
+            "title": decision.title,
+            "status": decision.status,
+            "previous_status": previous_status,
+            "allowed_next_statuses": list(allowed_next_statuses(decision.status)),
+            "updated_at": decision.updated_at.isoformat(),
+            "version": decision.version,
+            "audit_notice": "Status transition validated by DecisionService; Decision Record integration prepared.",
+        })
 
 
 @bp.get("/decisions/<decision_id>/record")

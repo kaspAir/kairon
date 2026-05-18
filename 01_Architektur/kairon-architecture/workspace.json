@@ -4,7 +4,7 @@
   "documentation" : {
     "decisions" : [ {
       "content" : "# ADR-001 Hybrid Deployment\n\n## Status\nAccepted\n\n## Context\nKAIRON muss sowohl als Schweizer SaaS als auch On Premise betrieben werden können.\n\n## Decision\nKAIRON wird deploymentneutral und containerisiert aufgebaut.\n\n## Consequences\n\n- Docker als Standard\n- PostgreSQL produktiv\n- Keine harte Cloud-Abhängigkeit\n- Austauschbare Infrastrukturservices\n- Backup-/Restore-Strategie erforderlich",
-      "date" : "2026-05-15T07:05:09Z",
+      "date" : "2026-05-16T08:21:26Z",
       "format" : "Markdown",
       "id" : "1",
       "status" : "Accepted",
@@ -19,7 +19,7 @@
     } ]
   },
   "id" : 1,
-  "lastModifiedDate" : "2026-05-15T07:05:09Z",
+  "lastModifiedDate" : "2026-05-16T08:21:26Z",
   "model" : {
     "deploymentNodes" : [ {
       "containerInstances" : [ {
@@ -28,7 +28,7 @@
         "id" : "99",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "99dcbeae-cab2-4c30-bd52-c5dd5979ab6a"
+          "structurizr.dsl.identifier" : "03cd0414-75d3-4929-a07e-7c8abdbf3625"
         },
         "relationships" : [ {
           "description" : "Startet Simulationen",
@@ -62,7 +62,7 @@
         "id" : "100",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "16685025-095f-4457-a819-837e1778b3a3"
+          "structurizr.dsl.identifier" : "9ab2a321-1e0c-4bcd-9e5b-5624729df361"
         },
         "relationships" : [ {
           "description" : "Speichert Ergebnisse",
@@ -78,7 +78,7 @@
         "id" : "102",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "9c33c952-1f85-4edc-b8bd-2f920484929d"
+          "structurizr.dsl.identifier" : "55e6fd6f-a9ac-421a-af72-32d237f21d66"
         },
         "relationships" : [ {
           "description" : "Speichert Governance-Daten",
@@ -94,7 +94,7 @@
         "id" : "104",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "e2a3a32c-3764-42a0-8648-67e49779efe1"
+          "structurizr.dsl.identifier" : "8cc1ee77-3404-492c-aa18-d5edc53593dc"
         },
         "relationships" : [ {
           "description" : "Liest Kennzahlen",
@@ -110,7 +110,7 @@
         "id" : "106",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "b28cd62f-4fb7-4599-b9a8-cd03e9a13b88"
+          "structurizr.dsl.identifier" : "387e1ca1-1fb1-45ce-bee2-69a34f2f0185"
         },
         "relationships" : [ {
           "description" : "Analysiert Entscheidungsdaten",
@@ -126,7 +126,7 @@
         "id" : "108",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "6264939d-f088-4e1e-aeb6-c2297464813d"
+          "structurizr.dsl.identifier" : "2ca721f0-3c8c-438b-8efc-e556051c7385"
         },
         "tags" : "Container Instance"
       } ],
@@ -135,7 +135,7 @@
       "instances" : "1",
       "name" : "Integration Environment",
       "properties" : {
-        "structurizr.dsl.identifier" : "6f4a2d15-7935-4aa0-afd5-f5f5e62ba481"
+        "structurizr.dsl.identifier" : "5cceaa31-90a9-4ed9-8624-b3fd114c5583"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "Docker Host / PaaS"
@@ -147,7 +147,7 @@
           "id" : "115",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "e0095299-ea0a-40de-8e2d-5f1f3678abaf"
+            "structurizr.dsl.identifier" : "6ccb1213-d8a2-4c88-88f4-0e51fbecf434"
           },
           "relationships" : [ {
             "description" : "Startet Simulationen",
@@ -181,7 +181,7 @@
           "id" : "116",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "425d35be-909f-43a6-abc9-4cf3d91a8567"
+            "structurizr.dsl.identifier" : "40ca14ed-dfd9-4487-86fe-ff02e3ada683"
           },
           "relationships" : [ {
             "description" : "Speichert Ergebnisse",
@@ -197,7 +197,7 @@
           "id" : "118",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "89edf18a-5619-47ac-b86a-bbc33980e624"
+            "structurizr.dsl.identifier" : "b09ac433-7d54-47b0-8440-dd9c10e426f4"
           },
           "relationships" : [ {
             "description" : "Speichert Governance-Daten",
@@ -213,7 +213,7 @@
           "id" : "120",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "6b93d877-0a4a-4714-a6b8-09e3b39696b4"
+            "structurizr.dsl.identifier" : "6fa6e06a-4d42-49cc-b001-2ed84bb50600"
           },
           "relationships" : [ {
             "description" : "Liest Kennzahlen",
@@ -229,7 +229,7 @@
           "id" : "122",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "c7ae49e9-0c34-4207-ba2a-28193347a4e9"
+            "structurizr.dsl.identifier" : "607f6c70-97b3-465e-b9f4-9280434b13bc"
           },
           "relationships" : [ {
             "description" : "Analysiert Entscheidungsdaten",
@@ -245,7 +245,7 @@
         "instances" : "1",
         "name" : "Application Runtime",
         "properties" : {
-          "structurizr.dsl.identifier" : "f8c7df48-92d3-4335-a85c-13dacf56038e"
+          "structurizr.dsl.identifier" : "538255f6-0dd1-4d9d-8767-113c02ce07e1"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "Docker Runtime"
@@ -256,7 +256,7 @@
           "id" : "125",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "08620397-800e-4267-8b15-b99d70a00147"
+            "structurizr.dsl.identifier" : "8a0692f1-40ef-4053-8485-a32771556357"
           },
           "tags" : "Container Instance"
         } ],
@@ -265,7 +265,7 @@
         "instances" : "1",
         "name" : "Managed Database",
         "properties" : {
-          "structurizr.dsl.identifier" : "c2d676be-8a4a-416c-9d98-71641d8b7428"
+          "structurizr.dsl.identifier" : "c8c4dacc-a2a6-43ab-a807-89780a588d92"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "PostgreSQL"
@@ -275,7 +275,7 @@
       "instances" : "1",
       "name" : "Swiss PaaS",
       "properties" : {
-        "structurizr.dsl.identifier" : "0698cf9f-a51b-4b10-a1c1-85389988784f"
+        "structurizr.dsl.identifier" : "d47c08af-3e5a-4381-891e-78ea57948fc5"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "Swiss hosted container platform"
@@ -287,7 +287,7 @@
           "id" : "132",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "503a18f5-7eef-4ea2-a8b2-bcf8990e3c1f"
+            "structurizr.dsl.identifier" : "44a865ff-6543-4c44-b0a0-1dad39cdf8f1"
           },
           "relationships" : [ {
             "description" : "Startet Simulationen",
@@ -321,7 +321,7 @@
           "id" : "133",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "bca23a83-daaf-489f-9bbc-aef0dc9ac1f6"
+            "structurizr.dsl.identifier" : "84b8bba9-1ff8-404e-8e78-490d53731eee"
           },
           "relationships" : [ {
             "description" : "Speichert Ergebnisse",
@@ -337,7 +337,7 @@
           "id" : "135",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "8ee1943a-f2ea-48e0-9cf4-60eda624f0cb"
+            "structurizr.dsl.identifier" : "d44f1a1d-4bc1-4d85-819a-b8f3dde421b8"
           },
           "relationships" : [ {
             "description" : "Speichert Governance-Daten",
@@ -353,7 +353,7 @@
           "id" : "137",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "4ee7ec59-6d15-4c0a-bf5d-582516bae19e"
+            "structurizr.dsl.identifier" : "b956a75f-24a3-4476-bedd-1493c549a939"
           },
           "relationships" : [ {
             "description" : "Liest Kennzahlen",
@@ -369,7 +369,7 @@
           "id" : "139",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "155f9d46-71b8-499b-a165-305b7f7c9e3a"
+            "structurizr.dsl.identifier" : "9df1cafd-2844-4e5d-a896-51122437742b"
           },
           "relationships" : [ {
             "description" : "Analysiert Entscheidungsdaten",
@@ -385,7 +385,7 @@
         "instances" : "1",
         "name" : "Docker Host",
         "properties" : {
-          "structurizr.dsl.identifier" : "8c7d8f54-3d2a-4381-b640-2d6cb136fe67"
+          "structurizr.dsl.identifier" : "47526a49-16e1-4333-997a-2c975668ec1a"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "Docker Runtime"
@@ -396,7 +396,7 @@
           "id" : "142",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "aba56d5d-ce0e-449b-8072-ca557b9ea807"
+            "structurizr.dsl.identifier" : "ae4b3148-e769-476a-8ae3-c2c65ab159d5"
           },
           "tags" : "Container Instance"
         } ],
@@ -405,7 +405,7 @@
         "instances" : "1",
         "name" : "Database Server",
         "properties" : {
-          "structurizr.dsl.identifier" : "089bb84c-8c41-4319-9a99-3029430a0ac5"
+          "structurizr.dsl.identifier" : "03392b86-ae2c-49c9-9b24-1413d62bf765"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "PostgreSQL"
@@ -415,7 +415,7 @@
       "instances" : "1",
       "name" : "Customer Data Center",
       "properties" : {
-        "structurizr.dsl.identifier" : "e1e3272f-9f14-4b70-a77e-22038d15e3c4"
+        "structurizr.dsl.identifier" : "4e1ef9e2-09a0-42dd-8d13-24201ca69f1a"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "On Premise Infrastructure"

@@ -1,4 +1,5 @@
 from app.domains.decision.models import Decision, DecisionVariant
+from app.domains.decision.status import allowed_next_statuses, assert_transition_allowed
 from app.shared.errors import NotFoundError
 
 
@@ -39,6 +40,29 @@ class DecisionService:
         self.session.add(variant)
         self.session.flush()
         return variant
+
+
+    def change_decision_status(self, decision_id: str, target_status: str, changed_by: str = "system") -> tuple[Decision, str]:
+        """Change a decision status through the controlled lifecycle.
+
+        The method intentionally keeps the MVP lightweight: it validates transitions,
+        updates the governance fields and increments the version. A dedicated audit
+        event/decision-record entry can be attached here later without changing routes.
+        """
+        decision = self.session.get(Decision, decision_id)
+        if decision is None:
+            raise NotFoundError("Decision not found")
+
+        previous_status, normalized_target = assert_transition_allowed(decision.status, target_status)
+        decision.status = normalized_target
+        decision.created_by = decision.created_by or changed_by or "system"
+        decision.version = (decision.version or 1) + 1
+        self.session.add(decision)
+        self.session.flush()
+        return decision, previous_status
+
+    def allowed_next_statuses(self, decision: Decision) -> tuple[str, ...]:
+        return allowed_next_statuses(decision.status)
 
     def get_decision_record_view(self, decision_id: str) -> dict:
         decision = self.session.get(Decision, decision_id)
