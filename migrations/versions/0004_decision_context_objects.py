@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = "0004_decision_context_objects"
-down_revision = "0003_merge_alembic_heads"
+down_revision = "31307c981c0a"
 branch_labels = None
 depends_on = None
 
