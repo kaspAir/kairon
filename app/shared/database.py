@@ -14,6 +14,7 @@ def import_models():
     import app.domains.assessment.models  # noqa: F401
     import app.domains.governance.models  # noqa: F401
     import app.domains.observation.models  # noqa: F401
+    import app.domains.context.models  # noqa: F401
 
 
 def init_engine(database_url: str, echo: bool = False):

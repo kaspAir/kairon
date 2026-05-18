@@ -20,6 +20,7 @@ class Decision(GovernanceFieldsMixin, Base):
     approval_records = relationship("ApprovalRecord", back_populates="decision", cascade="all, delete-orphan")
     decision_records = relationship("DecisionRecord", back_populates="decision", cascade="all, delete-orphan")
     observation_records = relationship("ObservationRecord", back_populates="decision", cascade="all, delete-orphan")
+    context_objects = relationship("DecisionContextObject", back_populates="decision", cascade="all, delete-orphan")
 
 
 class DecisionVariant(GovernanceFieldsMixin, Base):

@@ -22,3 +22,4 @@ class Scenario(GovernanceFieldsMixin, Base):
     decision = relationship("Decision", back_populates="scenarios")
     variant = relationship("DecisionVariant", back_populates="scenarios")
     simulation_runs = relationship("SimulationRun", back_populates="scenario", cascade="all, delete-orphan")
+    context_objects = relationship("DecisionContextObject", back_populates="scenario", cascade="all, delete-orphan")
