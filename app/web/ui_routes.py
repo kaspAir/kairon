@@ -1,0 +1,640 @@
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from decimal import Decimal
+
+from sqlalchemy import text
+
+from flask import Blueprint, current_app, redirect, render_template, request, url_for
+
+from app.domains.assessment.models import RiskAssessment, SimulationRun
+from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
+from app.domains.assessment.service import RiskAssessmentService
+from app.domains.decision.models import Decision
+from app.domains.decision.service import DecisionService
+from app.domains.decision.status import DECISION_STATUS_LABELS, DECISION_STATUS_DEFINITIONS, allowed_next_statuses
+from app.domains.governance.models import ApprovalRecord
+from app.domains.governance.service import GovernanceService
+from app.domains.observation.service import ObservationService
+from app.domains.scenario.models import Scenario
+from app.domains.scenario.service import ScenarioService
+from app.domains.simulation.service import SimulationService
+from app.shared.database import session_scope
+from app.shared.errors import NotFoundError
+
+bp = Blueprint("ui", __name__, url_prefix="/ui")
+
+STATUS_SEQUENCE = tuple(status.value for status in DECISION_STATUS_DEFINITIONS)
+
+
+OVERVIEW_PAGES = {
+    "scenarios": {
+        "nav": "scenarios",
+        "eyebrow": "Scenario Overview",
+        "title": "Szenarien als prüfbare Entscheidungsräume",
+        "text": "Szenarien machen Annahmen und Kontextvarianten vergleichbar. Im MVP werden sie pro Decision und Variante geführt und deterministisch simuliert.",
+        "empty_title": "Noch keine Szenarien im Workspace",
+        "empty_text": "Lege in einer Decision Varianten und Szenarien an, um Simulationen, Impact Assessments und Entscheidungsdeltas aufzubauen.",
+    },
+    "compare": {
+        "nav": "compare",
+        "eyebrow": "Compare Overview",
+        "title": "Varianten und Szenarien vergleichbar machen",
+        "text": "Compare ist der zentrale KAIRON-Bereich: Kosten, Nutzen, Risiken, Confidence, Simulation Status und Governance Status werden als Entscheidungsgrundlage gegenübergestellt.",
+        "empty_title": "Noch keine Vergleichsgrundlagen",
+        "empty_text": "Öffne eine Decision, lege Varianten und Szenarien an und starte Simulationen. Danach wird der Compare Workspace entscheidungsfähig.",
+    },
+    "governance": {
+        "nav": "governance",
+        "eyebrow": "Governance Overview",
+        "title": "Entscheidungen nachvollziehbar prüfen und freigeben",
+        "text": "Governance bündelt Risiken, Approvals und Decision Records. KI bleibt beratend; die Entscheidung bleibt menschlich verantwortet.",
+        "empty_title": "Noch keine Governance-Arbeit offen",
+        "empty_text": "Erfasse Risiken und Approval Records in einer Decision, um Freigaben und auditierbare Entscheidungsgrundlagen sichtbar zu machen.",
+    },
+    "analytics": {
+        "nav": "analytics",
+        "eyebrow": "Analytics Overview",
+        "title": "Decision Intelligence Kennzahlen vorbereiten",
+        "text": "Analytics bleibt im MVP bewusst leichtgewichtig. Relevante Signale entstehen aus Simulationen, Impact Assessments, Risiken und Governance-Zuständen.",
+        "empty_title": "Analytics ist vorbereitet",
+        "empty_text": "Sobald mehrere Decisions, Szenarien und Simulationen vorhanden sind, können Trends, Baselines und Targets sauber aufgebaut werden.",
+    },
+}
+
+
+@dataclass(frozen=True)
+class UiMessage:
+    level: str
+    text: str
+
+
+def _created_by() -> str:
+    return (request.form.get("created_by") or request.headers.get("X-Kairon-User") or "system").strip() or "system"
+
+
+def _to_float(value, default=0.0) -> float:
+    if value in (None, ""):
+        return default
+    return float(value)
+
+
+def _to_int(value, default=0) -> int:
+    if value in (None, ""):
+        return default
+    return int(value)
+
+
+def _as_float(value) -> float:
+    if value is None:
+        return 0.0
+    if isinstance(value, Decimal):
+        return float(value)
+    return float(value)
+
+
+def _message() -> UiMessage | None:
+    text = request.args.get("message")
+    if not text:
+        return None
+    return UiMessage(level=request.args.get("level", "info"), text=text)
+
+
+def _latest_simulation(scenario: Scenario | None) -> SimulationRun | None:
+    if scenario is None or not scenario.simulation_runs:
+        return None
+    return sorted(scenario.simulation_runs, key=lambda run: run.created_at, reverse=True)[0]
+
+
+def _dominant_risk(decision: Decision) -> RiskAssessment | None:
+    severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+    if not decision.risk_assessments:
+        return None
+    return sorted(decision.risk_assessments, key=lambda risk: severity_rank.get(risk.severity, 0), reverse=True)[0]
+
+
+def _latest_approval(decision: Decision) -> ApprovalRecord | None:
+    if not decision.approval_records:
+        return None
+    return sorted(decision.approval_records, key=lambda approval: approval.created_at, reverse=True)[0]
+
+
+def _confidence_label(score: float | None) -> str:
+    if score is None:
+        return "low"
+    if score >= 0.75:
+        return "high"
+    if score >= 0.5:
+        return "medium"
+    return "low"
+
+
+def _decision_confidence(decision: Decision) -> str:
+    scores = []
+    for scenario in decision.scenarios:
+        latest_run = _latest_simulation(scenario)
+        if latest_run and latest_run.impact_assessment:
+            scores.append(_as_float(latest_run.impact_assessment.confidence_score))
+    if not scores:
+        return "low"
+    return _confidence_label(sum(scores) / len(scores))
+
+
+def _risk_label(risk: RiskAssessment | None) -> str:
+    return risk.severity if risk else "none"
+
+
+def _governance_state(decision: Decision) -> str:
+    if decision.status in {"observed", "reassessment_needed", "reassessing"}:
+        return decision.status
+    latest_approval = _latest_approval(decision)
+    if latest_approval and latest_approval.status == "approved":
+        return "approved"
+    if latest_approval:
+        return "governance_reviewed"
+    if decision.risk_assessments:
+        return "risk_reviewed"
+    if any(_latest_simulation(scenario) for scenario in decision.scenarios):
+        return "simulated"
+    if decision.variants or decision.scenarios:
+        return "in_review"
+    return decision.status or "draft"
+
+
+def _pending_governance_state(decision: Decision) -> str:
+    state = _governance_state(decision)
+    if state == "reassessment_needed":
+        return "Reassessment needed"
+    if state == "reassessing":
+        return "Reassessing"
+    if state == "observed":
+        return "Observed"
+    if state == "approved":
+        return "Approved"
+    if state == "risk_reviewed":
+        return "Approval pending"
+    if state == "simulated":
+        return "Risk review pending"
+    if state == "in_review":
+        return "Simulation pending"
+    return "Decision setup pending"
+
+
+def _status_transition_actions(decision: Decision) -> list[dict]:
+    return [
+        {
+            "value": status,
+            "label": DECISION_STATUS_LABELS.get(status, status.replace("_", " ").title()),
+            "description": "Controlled lifecycle transition; audit/Decision Record linkage prepared.",
+        }
+        for status in allowed_next_statuses(decision.status)
+    ]
+
+
+def _decision_card_view_model(decision: Decision) -> dict:
+    latest_runs = [_latest_simulation(scenario) for scenario in decision.scenarios]
+    latest_runs = [run for run in latest_runs if run is not None]
+    latest_run = sorted(latest_runs, key=lambda run: run.created_at, reverse=True)[0] if latest_runs else None
+    dominant_risk = _dominant_risk(decision)
+    governance_state = _governance_state(decision)
+    return {
+        "id": decision.id,
+        "title": decision.title,
+        "description": decision.context,
+        "status": governance_state,
+        "created_by": decision.created_by,
+        "created_at": decision.created_at,
+        "variant_count": len(decision.variants),
+        "scenario_count": len(decision.scenarios),
+        "risk_count": len(decision.risk_assessments),
+        "latest_simulation": latest_run,
+        "latest_simulation_status": "simulated" if latest_run else "not_simulated",
+        "confidence": _decision_confidence(decision),
+        "dominant_risk": dominant_risk,
+        "pending_governance_state": _pending_governance_state(decision),
+        "allowed_status_transitions": _status_transition_actions(decision),
+    }
+
+
+def _dashboard_summary(session, decisions: list[Decision]) -> dict:
+    high_risks = session.query(RiskAssessment).filter(RiskAssessment.severity.in_(["high", "critical"])).count()
+    recent_simulations = session.query(SimulationRun).order_by(SimulationRun.created_at.desc()).limit(5).all()
+    pending_approvals = sum(1 for decision in decisions if _governance_state(decision) != "approved")
+    reassessments_needed = sum(1 for decision in decisions if _dominant_risk(decision) and _governance_state(decision) != "approved")
+    return {
+        "open_decisions": sum(1 for decision in decisions if _governance_state(decision) not in {"approved", "archived"}),
+        "critical_risks": high_risks,
+        "recent_simulations": len(recent_simulations),
+        "pending_approvals": pending_approvals,
+        "reassessments_needed": reassessments_needed,
+        "environment": current_app.config.get("ENVIRONMENT", "development").upper(),
+        "build_status": os.getenv("BUILD_STATUS", os.getenv("JENKINS_BUILD_STATUS", "not available")),
+        "api_health": "ok",
+        "demo_available": any(decision.title == DEMO_DECISION_TITLE for decision in decisions),
+    }
+
+
+def _decision_or_404(session, decision_id: str) -> Decision:
+    decision = session.get(Decision, decision_id)
+    if decision is None:
+        raise NotFoundError("Decision not found")
+    return decision
+
+
+def _comparison_rows(decision: Decision) -> list[dict]:
+    rows = []
+    dominant_risk = _dominant_risk(decision)
+    scenarios_by_variant = {}
+    for scenario in decision.scenarios:
+        scenarios_by_variant.setdefault(scenario.variant_id, []).append(scenario)
+
+    for variant in decision.variants:
+        scenarios = scenarios_by_variant.get(variant.id) or [None]
+        for scenario in scenarios:
+            latest_run = _latest_simulation(scenario)
+            impact = latest_run.impact_assessment if latest_run and latest_run.impact_assessment else None
+            confidence_score = _as_float(impact.confidence_score) if impact else None
+            estimated_cost = _as_float(variant.estimated_cost)
+            expected_benefit = _as_float(variant.expected_benefit)
+            rows.append({
+                "variant": variant,
+                "scenario": scenario,
+                "estimated_cost": estimated_cost,
+                "expected_benefit": expected_benefit,
+                "benefit_delta": expected_benefit - estimated_cost,
+                "simulation": latest_run,
+                "simulation_status": "simulated" if latest_run else "draft",
+                "impact": impact,
+                "impact_delta": _as_float(impact.net_impact) if impact else None,
+                "risk": dominant_risk,
+                "risk_label": _risk_label(dominant_risk),
+                "confidence": _confidence_label(confidence_score),
+                "confidence_score": confidence_score,
+                "governance_status": _governance_state(decision),
+            })
+    return rows
+
+
+def _scenario_rows(decision: Decision) -> list[dict]:
+    return [
+        {
+            "scenario": scenario,
+            "variant": scenario.variant,
+            "latest_simulation": _latest_simulation(scenario),
+        }
+        for scenario in decision.scenarios
+    ]
+
+
+def _context_panels(decision: Decision) -> list[dict]:
+    """Prepare future workspace modules without implementing full modeling capabilities.
+
+    The MVP keeps these panels read-only and explanatory. Later slices can replace the
+    `items`/`empty_text` values with real Process, Organization, Resource/FTE and Risk
+    domain data without changing the Decision Workspace layout.
+    """
+    risk_count = len(decision.risk_assessments)
+    scenario_count = len(decision.scenarios)
+    return [
+        {
+            "key": "process-context",
+            "title": "Process Context",
+            "summary": "Prozessbezug der Decision",
+            "items": [],
+            "empty_title": "Noch kein Prozesskontext verknüpft",
+            "empty_text": "Später können hier Prozesslandkarte, Prozessversion, relevante Prozessschritte oder BPMN-Referenzen angebunden werden. Im MVP bleibt der Kontext bewusst beschreibend, damit KAIRON keine reine BPM-Canvas wird.",
+            "prepared_for": "Process Domain",
+        },
+        {
+            "key": "organization-context",
+            "title": "Organization Context",
+            "summary": "Organisationseinheiten und Verantwortlichkeiten",
+            "items": [],
+            "empty_title": "Noch kein Organisationskontext erfasst",
+            "empty_text": "Später können Organisationseinheiten, Rollen, Verantwortlichkeiten und Freigabegremien ergänzt werden. Der Workspace ist bereits darauf vorbereitet, ohne einen Organigramm-Editor einzubauen.",
+            "prepared_for": "Organization Domain",
+        },
+        {
+            "key": "resource-context",
+            "title": "Resource / FTE Context",
+            "summary": "Kapazität, Ressourcen und FTE-Wirkung",
+            "items": [f"{scenario_count} Szenario(s) mit Fallzahl, Bearbeitungszeit und Stundenkosten vorbereitet"] if scenario_count else [],
+            "empty_title": "Noch keine Ressourcen- oder FTE-Grundlage",
+            "empty_text": "Erfasse Szenarien mit Fallzahlen, Bearbeitungszeiten und Stundenkosten. Später können daraus FTE-Bedarf, Kapazitätsgrenzen und Engpässe sauber abgeleitet werden.",
+            "prepared_for": "Resource & Capacity Domain",
+        },
+        {
+            "key": "risk-management",
+            "title": "Risk Management",
+            "summary": "Risiken, Unsicherheiten und Nebenwirkungen",
+            "items": [f"{risk_count} Risk Assessment(s) erfasst"] if risk_count else [],
+            "empty_title": "Noch keine Risiken bewertet",
+            "empty_text": "Erfasse Risiken, Unsicherheiten oder Nebenwirkungen, um die Entscheidung governancefähig vergleichbar zu machen. Komplexes Risikomanagement folgt später bewusst als eigenes Modul.",
+            "prepared_for": "Risk Management",
+        },
+    ]
+
+
+def _observation_records(decision: Decision) -> list[dict]:
+    service = ObservationService(None)
+    return [service.observation_view_model(record) for record in sorted(decision.observation_records, key=lambda record: record.observed_at, reverse=True)]
+
+
+def _observation_context(decision: Decision) -> dict:
+    observations = _observation_records(decision)
+    latest = observations[0] if observations else None
+    return {
+        "records": observations,
+        "latest": latest,
+        "status": decision.status if decision.status in {"observed", "reassessment_needed", "reassessing"} else (latest["status"] if latest else "not_observed"),
+        "empty_title": "Noch keine Beobachtung erfasst",
+        "empty_text": "Beobachtungen machen Entscheidungen überprüfbar: Erwarteter Nutzen, tatsächlicher Nutzen, Kosten und Risiken werden nachverfolgt, damit KAIRON später Reassessments auslösen kann.",
+    }
+
+
+def _workspace_view_model(decision: Decision) -> dict:
+    rows = _comparison_rows(decision)
+    latest_record = sorted(decision.decision_records, key=lambda record: record.created_at, reverse=True)[0] if decision.decision_records else None
+    return {
+        "decision": decision,
+        "decision_card": _decision_card_view_model(decision),
+        "context_panels": _context_panels(decision),
+        "observation_context": _observation_context(decision),
+        "comparison_rows": rows,
+        "scenario_rows": _scenario_rows(decision),
+        "latest_record": latest_record,
+        "dominant_risk": _dominant_risk(decision),
+        "governance_status": _governance_state(decision),
+        "status_sequence": STATUS_SEQUENCE,
+        "status_labels": DECISION_STATUS_LABELS,
+        "status_transition_actions": _status_transition_actions(decision),
+        "has_simulations": any(row["simulation"] for row in rows),
+        "has_impacts": any(row["impact"] for row in rows),
+    }
+
+
+@bp.get("")
+@bp.get("/")
+def home():
+    with session_scope() as session:
+        decisions = session.query(Decision).order_by(Decision.created_at.desc()).all()
+        decision_cards = [_decision_card_view_model(decision) for decision in decisions]
+        return render_template(
+            "dashboard.html",
+            active_nav="decisions",
+            decisions=decision_cards,
+            summary=_dashboard_summary(session, decisions),
+            status_sequence=STATUS_SEQUENCE,
+            message=_message(),
+        )
+
+
+
+@bp.post("/demo-seed")
+def load_demo_seed():
+    with session_scope() as session:
+        decision = seed_golden_demo(session)
+        return redirect(url_for(
+            "ui.decision_detail",
+            decision_id=decision.id,
+            message="Golden demo data loaded",
+            level="success",
+        ))
+
+
+def _render_overview(section: str):
+    page = OVERVIEW_PAGES.get(section)
+    if page is None:
+        raise NotFoundError("Workspace section not found")
+    with session_scope() as session:
+        decisions = session.query(Decision).order_by(Decision.created_at.desc()).all()
+        return render_template(
+            "overview.html",
+            active_nav=page["nav"],
+            page=page,
+            decisions=[_decision_card_view_model(decision) for decision in decisions],
+            summary=_dashboard_summary(session, decisions),
+            message=_message(),
+        )
+
+
+@bp.get("/scenarios")
+def scenarios_overview():
+    return _render_overview("scenarios")
+
+
+@bp.get("/compare")
+def compare_overview():
+    return _render_overview("compare")
+
+
+@bp.get("/governance")
+def governance_overview():
+    return _render_overview("governance")
+
+
+@bp.get("/analytics")
+def analytics_overview():
+    return _render_overview("analytics")
+
+
+@bp.get("/<section>")
+def overview(section):
+    return _render_overview(section)
+
+
+def _db_status(session) -> str:
+    try:
+        session.execute(text("select 1"))
+        return "ok"
+    except Exception:
+        current_app.logger.exception("database status check failed")
+        return "error"
+
+
+@bp.get("/system-status")
+def system_status():
+    with session_scope() as session:
+        api_health = "ok"
+        db_status = _db_status(session)
+        status = {
+            "environment": current_app.config.get("ENVIRONMENT", "development").upper(),
+            "api_health": api_health,
+            "db_status": db_status,
+            "build_status": os.getenv("BUILD_STATUS", os.getenv("JENKINS_BUILD_STATUS", "not available")),
+            "pipeline_hint": "Pipeline from SCM should run against the checked-out branch. /api is the official API path; /health remains the smoke-test endpoint.",
+        }
+        return render_template("system_status.html", active_nav="system", status=status, message=_message())
+
+
+@bp.post("/decisions")
+def create_decision():
+    try:
+        with session_scope() as session:
+            decision = DecisionService(session).create_decision(
+                title=request.form.get("title", ""),
+                context=request.form.get("description") or None,
+                created_by=_created_by(),
+            )
+            return redirect(url_for("ui.decision_detail", decision_id=decision.id))
+    except ValueError as exc:
+        return redirect(url_for("ui.home", message=str(exc), level="error"))
+
+
+@bp.get("/decisions/<decision_id>")
+def decision_detail(decision_id):
+    with session_scope() as session:
+        decision = _decision_or_404(session, decision_id)
+        return render_template(
+            "decisions/detail.html",
+            active_nav="decisions",
+            message=_message(),
+            **_workspace_view_model(decision),
+        )
+
+
+@bp.get("/decisions/<decision_id>/compare")
+def decision_compare(decision_id):
+    with session_scope() as session:
+        decision = _decision_or_404(session, decision_id)
+        return render_template(
+            "decisions/compare.html",
+            active_nav="compare",
+            message=_message(),
+            **_workspace_view_model(decision),
+        )
+
+
+@bp.get("/decisions/<decision_id>/record")
+def decision_record(decision_id):
+    with session_scope() as session:
+        decision = _decision_or_404(session, decision_id)
+        return render_template(
+            "decisions/record.html",
+            active_nav="governance",
+            message=_message(),
+            **_workspace_view_model(decision),
+        )
+
+
+@bp.post("/decisions/<decision_id>/status")
+def change_decision_status(decision_id):
+    target_status = request.form.get("status", "")
+    try:
+        with session_scope() as session:
+            decision, previous_status = DecisionService(session).change_decision_status(
+                decision_id=decision_id,
+                target_status=target_status,
+                changed_by=_created_by(),
+            )
+            label = DECISION_STATUS_LABELS.get(decision.status, decision.status.replace("_", " ").title())
+            return redirect(url_for("ui.decision_detail", decision_id=decision.id, message=f"Status changed to {label}", level="success") + "#lifecycle")
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error") + "#lifecycle")
+
+
+@bp.post("/decisions/<decision_id>/variants")
+def create_variant(decision_id):
+    try:
+        with session_scope() as session:
+            DecisionService(session).create_variant(
+                decision_id=decision_id,
+                name=request.form.get("name", ""),
+                description=request.form.get("description") or None,
+                estimated_cost=_to_float(request.form.get("estimated_cost")),
+                expected_benefit=_to_float(request.form.get("expected_benefit")),
+                created_by=_created_by(),
+            )
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Variant created", level="success"))
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
+
+
+@bp.post("/decisions/<decision_id>/scenarios")
+def create_scenario(decision_id):
+    try:
+        with session_scope() as session:
+            ScenarioService(session).create_scenario(
+                decision_id=decision_id,
+                variant_id=request.form.get("variant_id", ""),
+                name=request.form.get("name", ""),
+                description=request.form.get("description") or None,
+                case_volume=_to_int(request.form.get("case_volume"), 1),
+                processing_minutes_per_case=_to_float(request.form.get("processing_minutes_per_case")),
+                hourly_cost=_to_float(request.form.get("hourly_cost")),
+                created_by=_created_by(),
+            )
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Scenario created", level="success"))
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
+
+
+@bp.post("/scenarios/<scenario_id>/simulate")
+def simulate_scenario(scenario_id):
+    with session_scope() as session:
+        scenario = session.get(Scenario, scenario_id)
+        if scenario is None:
+            raise NotFoundError("Scenario not found")
+        decision_id = scenario.decision_id
+        SimulationService(session).run_deterministic_simulation(scenario_id, created_by=_created_by())
+    return redirect(url_for("ui.decision_compare", decision_id=decision_id, message="Simulation completed", level="success"))
+
+
+@bp.post("/decisions/<decision_id>/risks")
+def create_risk(decision_id):
+    try:
+        with session_scope() as session:
+            RiskAssessmentService(session).create_risk_assessment(
+                decision_id=decision_id,
+                summary=request.form.get("summary", ""),
+                severity=request.form.get("severity", "medium"),
+                mitigation=request.form.get("mitigation") or None,
+                created_by=_created_by(),
+            )
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Risk assessment saved", level="success"))
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
+
+
+@bp.post("/decisions/<decision_id>/approvals")
+def create_approval(decision_id):
+    try:
+        with session_scope() as session:
+            GovernanceService(session).create_approval_record(
+                decision_id=decision_id,
+                approved_by=request.form.get("approved_by", ""),
+                status=request.form.get("status", "approved"),
+                comment=request.form.get("comment") or None,
+                created_by=_created_by(),
+            )
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Governance state updated", level="success"))
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
+
+
+@bp.post("/decisions/<decision_id>/observations")
+def create_observation(decision_id):
+    try:
+        with session_scope() as session:
+            ObservationService(session).create_observation_record(
+                decision_id=decision_id,
+                expected_benefit=_to_float(request.form.get("expected_benefit")),
+                actual_benefit=_to_float(request.form.get("actual_benefit")),
+                expected_cost=_to_float(request.form.get("expected_cost")),
+                actual_cost=_to_float(request.form.get("actual_cost")),
+                expected_risks=request.form.get("expected_risks") or None,
+                actual_risks=request.form.get("actual_risks") or None,
+                comment=request.form.get("comment") or None,
+                created_by=_created_by(),
+            )
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Observation saved", level="success") + "#observation")
+    except ValueError as exc:
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
+
+
+@bp.post("/decisions/<decision_id>/records")
+def create_record(decision_id):
+    with session_scope() as session:
+        GovernanceService(session).create_decision_record(decision_id, created_by=_created_by())
+    return redirect(url_for("ui.decision_record", decision_id=decision_id, message="Decision record generated", level="success"))

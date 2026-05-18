@@ -4,7 +4,7 @@
   "documentation" : {
     "decisions" : [ {
       "content" : "# ADR-001 Hybrid Deployment\n\n## Status\nAccepted\n\n## Context\nKAIRON muss sowohl als Schweizer SaaS als auch On Premise betrieben werden können.\n\n## Decision\nKAIRON wird deploymentneutral und containerisiert aufgebaut.\n\n## Consequences\n\n- Docker als Standard\n- PostgreSQL produktiv\n- Keine harte Cloud-Abhängigkeit\n- Austauschbare Infrastrukturservices\n- Backup-/Restore-Strategie erforderlich",
-      "date" : "2026-05-14T12:13:52Z",
+      "date" : "2026-05-16T08:21:26Z",
       "format" : "Markdown",
       "id" : "1",
       "status" : "Accepted",
@@ -19,123 +19,123 @@
     } ]
   },
   "id" : 1,
-  "lastModifiedDate" : "2026-05-14T12:13:52Z",
+  "lastModifiedDate" : "2026-05-16T08:21:26Z",
   "model" : {
     "deploymentNodes" : [ {
       "containerInstances" : [ {
         "containerId" : "6",
         "environment" : "Integration",
-        "id" : "61",
+        "id" : "99",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "1d36123f-a3a6-42d6-8465-0fec45453688"
+          "structurizr.dsl.identifier" : "03cd0414-75d3-4929-a07e-7c8abdbf3625"
         },
         "relationships" : [ {
           "description" : "Startet Simulationen",
-          "destinationId" : "62",
-          "id" : "63",
-          "linkedRelationshipId" : "37",
-          "sourceId" : "61"
+          "destinationId" : "100",
+          "id" : "101",
+          "linkedRelationshipId" : "58",
+          "sourceId" : "99"
         }, {
           "description" : "Verwaltet Governance",
-          "destinationId" : "64",
-          "id" : "65",
-          "linkedRelationshipId" : "38",
-          "sourceId" : "61"
+          "destinationId" : "102",
+          "id" : "103",
+          "linkedRelationshipId" : "59",
+          "sourceId" : "99"
         }, {
           "description" : "Lädt Kennzahlen",
-          "destinationId" : "66",
-          "id" : "67",
-          "linkedRelationshipId" : "39",
-          "sourceId" : "61"
+          "destinationId" : "104",
+          "id" : "105",
+          "linkedRelationshipId" : "60",
+          "sourceId" : "99"
         }, {
           "description" : "Fordert Empfehlungen an",
-          "destinationId" : "68",
-          "id" : "69",
-          "linkedRelationshipId" : "40",
-          "sourceId" : "61"
+          "destinationId" : "106",
+          "id" : "107",
+          "linkedRelationshipId" : "61",
+          "sourceId" : "99"
         } ],
         "tags" : "Container Instance"
       }, {
         "containerId" : "7",
         "environment" : "Integration",
-        "id" : "62",
+        "id" : "100",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "723109a6-96b7-439a-a4e8-384f674e943b"
+          "structurizr.dsl.identifier" : "9ab2a321-1e0c-4bcd-9e5b-5624729df361"
         },
         "relationships" : [ {
           "description" : "Speichert Ergebnisse",
-          "destinationId" : "70",
-          "id" : "71",
-          "linkedRelationshipId" : "41",
-          "sourceId" : "62"
+          "destinationId" : "108",
+          "id" : "109",
+          "linkedRelationshipId" : "62",
+          "sourceId" : "100"
         } ],
         "tags" : "Container Instance"
       }, {
         "containerId" : "8",
         "environment" : "Integration",
-        "id" : "64",
+        "id" : "102",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "8a9f5a3c-b58d-44d7-8279-6480f8d0b85b"
+          "structurizr.dsl.identifier" : "55e6fd6f-a9ac-421a-af72-32d237f21d66"
         },
         "relationships" : [ {
           "description" : "Speichert Governance-Daten",
-          "destinationId" : "70",
-          "id" : "72",
-          "linkedRelationshipId" : "42",
-          "sourceId" : "64"
+          "destinationId" : "108",
+          "id" : "110",
+          "linkedRelationshipId" : "63",
+          "sourceId" : "102"
         } ],
         "tags" : "Container Instance"
       }, {
         "containerId" : "9",
         "environment" : "Integration",
-        "id" : "66",
+        "id" : "104",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "5e0b3fcb-0ee5-48f1-9eda-398f581fdabd"
+          "structurizr.dsl.identifier" : "8cc1ee77-3404-492c-aa18-d5edc53593dc"
         },
         "relationships" : [ {
           "description" : "Liest Kennzahlen",
-          "destinationId" : "70",
-          "id" : "73",
-          "linkedRelationshipId" : "43",
-          "sourceId" : "66"
+          "destinationId" : "108",
+          "id" : "111",
+          "linkedRelationshipId" : "64",
+          "sourceId" : "104"
         } ],
         "tags" : "Container Instance"
       }, {
         "containerId" : "10",
         "environment" : "Integration",
-        "id" : "68",
+        "id" : "106",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "78abafab-c3d2-4026-9366-423a84d39f8f"
+          "structurizr.dsl.identifier" : "387e1ca1-1fb1-45ce-bee2-69a34f2f0185"
         },
         "relationships" : [ {
           "description" : "Analysiert Entscheidungsdaten",
-          "destinationId" : "70",
-          "id" : "74",
-          "linkedRelationshipId" : "44",
-          "sourceId" : "68"
+          "destinationId" : "108",
+          "id" : "112",
+          "linkedRelationshipId" : "65",
+          "sourceId" : "106"
         } ],
         "tags" : "Container Instance"
       }, {
         "containerId" : "11",
         "environment" : "Integration",
-        "id" : "70",
+        "id" : "108",
         "instanceId" : 1,
         "properties" : {
-          "structurizr.dsl.identifier" : "90208f60-9fba-4ac1-8c0f-71e7d9c96bb7"
+          "structurizr.dsl.identifier" : "2ca721f0-3c8c-438b-8efc-e556051c7385"
         },
         "tags" : "Container Instance"
       } ],
       "environment" : "Integration",
-      "id" : "60",
+      "id" : "98",
       "instances" : "1",
       "name" : "Integration Environment",
       "properties" : {
-        "structurizr.dsl.identifier" : "c9a1b6ba-c1f4-4166-a11f-3ba9a4ef8faa"
+        "structurizr.dsl.identifier" : "5cceaa31-90a9-4ed9-8624-b3fd114c5583"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "Docker Host / PaaS"
@@ -144,108 +144,108 @@
         "containerInstances" : [ {
           "containerId" : "6",
           "environment" : "Production - Swiss PaaS",
-          "id" : "77",
+          "id" : "115",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "fc4e2b51-9700-48d4-9e53-8b55a0b1802f"
+            "structurizr.dsl.identifier" : "6ccb1213-d8a2-4c88-88f4-0e51fbecf434"
           },
           "relationships" : [ {
             "description" : "Startet Simulationen",
-            "destinationId" : "78",
-            "id" : "79",
-            "linkedRelationshipId" : "37",
-            "sourceId" : "77"
+            "destinationId" : "116",
+            "id" : "117",
+            "linkedRelationshipId" : "58",
+            "sourceId" : "115"
           }, {
             "description" : "Verwaltet Governance",
-            "destinationId" : "80",
-            "id" : "81",
-            "linkedRelationshipId" : "38",
-            "sourceId" : "77"
+            "destinationId" : "118",
+            "id" : "119",
+            "linkedRelationshipId" : "59",
+            "sourceId" : "115"
           }, {
             "description" : "Lädt Kennzahlen",
-            "destinationId" : "82",
-            "id" : "83",
-            "linkedRelationshipId" : "39",
-            "sourceId" : "77"
+            "destinationId" : "120",
+            "id" : "121",
+            "linkedRelationshipId" : "60",
+            "sourceId" : "115"
           }, {
             "description" : "Fordert Empfehlungen an",
-            "destinationId" : "84",
-            "id" : "85",
-            "linkedRelationshipId" : "40",
-            "sourceId" : "77"
+            "destinationId" : "122",
+            "id" : "123",
+            "linkedRelationshipId" : "61",
+            "sourceId" : "115"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "7",
           "environment" : "Production - Swiss PaaS",
-          "id" : "78",
+          "id" : "116",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "bf13474b-cb92-424a-bb7a-8b4a1a62c176"
+            "structurizr.dsl.identifier" : "40ca14ed-dfd9-4487-86fe-ff02e3ada683"
           },
           "relationships" : [ {
             "description" : "Speichert Ergebnisse",
-            "destinationId" : "87",
-            "id" : "88",
-            "linkedRelationshipId" : "41",
-            "sourceId" : "78"
+            "destinationId" : "125",
+            "id" : "126",
+            "linkedRelationshipId" : "62",
+            "sourceId" : "116"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "8",
           "environment" : "Production - Swiss PaaS",
-          "id" : "80",
+          "id" : "118",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "0567afdf-ccd3-4f25-b3b9-2af2af92721f"
+            "structurizr.dsl.identifier" : "b09ac433-7d54-47b0-8440-dd9c10e426f4"
           },
           "relationships" : [ {
             "description" : "Speichert Governance-Daten",
-            "destinationId" : "87",
-            "id" : "89",
-            "linkedRelationshipId" : "42",
-            "sourceId" : "80"
+            "destinationId" : "125",
+            "id" : "127",
+            "linkedRelationshipId" : "63",
+            "sourceId" : "118"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "9",
           "environment" : "Production - Swiss PaaS",
-          "id" : "82",
+          "id" : "120",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "8665fa5a-82eb-4c15-ad0c-d32bf3819cad"
+            "structurizr.dsl.identifier" : "6fa6e06a-4d42-49cc-b001-2ed84bb50600"
           },
           "relationships" : [ {
             "description" : "Liest Kennzahlen",
-            "destinationId" : "87",
-            "id" : "90",
-            "linkedRelationshipId" : "43",
-            "sourceId" : "82"
+            "destinationId" : "125",
+            "id" : "128",
+            "linkedRelationshipId" : "64",
+            "sourceId" : "120"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "10",
           "environment" : "Production - Swiss PaaS",
-          "id" : "84",
+          "id" : "122",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "cf61b5d4-2c78-43c5-987f-521905d03770"
+            "structurizr.dsl.identifier" : "607f6c70-97b3-465e-b9f4-9280434b13bc"
           },
           "relationships" : [ {
             "description" : "Analysiert Entscheidungsdaten",
-            "destinationId" : "87",
-            "id" : "91",
-            "linkedRelationshipId" : "44",
-            "sourceId" : "84"
+            "destinationId" : "125",
+            "id" : "129",
+            "linkedRelationshipId" : "65",
+            "sourceId" : "122"
           } ],
           "tags" : "Container Instance"
         } ],
         "environment" : "Production - Swiss PaaS",
-        "id" : "76",
+        "id" : "114",
         "instances" : "1",
         "name" : "Application Runtime",
         "properties" : {
-          "structurizr.dsl.identifier" : "85eaab34-a504-4498-b661-48c15d5e2a34"
+          "structurizr.dsl.identifier" : "538255f6-0dd1-4d9d-8767-113c02ce07e1"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "Docker Runtime"
@@ -253,29 +253,29 @@
         "containerInstances" : [ {
           "containerId" : "11",
           "environment" : "Production - Swiss PaaS",
-          "id" : "87",
+          "id" : "125",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "05019569-2e41-47a7-b1e7-3bda5ffdaa8a"
+            "structurizr.dsl.identifier" : "8a0692f1-40ef-4053-8485-a32771556357"
           },
           "tags" : "Container Instance"
         } ],
         "environment" : "Production - Swiss PaaS",
-        "id" : "86",
+        "id" : "124",
         "instances" : "1",
         "name" : "Managed Database",
         "properties" : {
-          "structurizr.dsl.identifier" : "d829c613-29dc-4613-8c68-573ca81b9416"
+          "structurizr.dsl.identifier" : "c8c4dacc-a2a6-43ab-a807-89780a588d92"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "PostgreSQL"
       } ],
       "environment" : "Production - Swiss PaaS",
-      "id" : "75",
+      "id" : "113",
       "instances" : "1",
       "name" : "Swiss PaaS",
       "properties" : {
-        "structurizr.dsl.identifier" : "4bc8db65-d16b-41fb-b7d2-6e75a33773fa"
+        "structurizr.dsl.identifier" : "d47c08af-3e5a-4381-891e-78ea57948fc5"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "Swiss hosted container platform"
@@ -284,108 +284,108 @@
         "containerInstances" : [ {
           "containerId" : "6",
           "environment" : "Production - On Premise",
-          "id" : "94",
+          "id" : "132",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "2aaf03a2-5d14-4790-b1c4-6f2ec2ba1d26"
+            "structurizr.dsl.identifier" : "44a865ff-6543-4c44-b0a0-1dad39cdf8f1"
           },
           "relationships" : [ {
             "description" : "Startet Simulationen",
-            "destinationId" : "95",
-            "id" : "96",
-            "linkedRelationshipId" : "37",
-            "sourceId" : "94"
+            "destinationId" : "133",
+            "id" : "134",
+            "linkedRelationshipId" : "58",
+            "sourceId" : "132"
           }, {
             "description" : "Verwaltet Governance",
-            "destinationId" : "97",
-            "id" : "98",
-            "linkedRelationshipId" : "38",
-            "sourceId" : "94"
+            "destinationId" : "135",
+            "id" : "136",
+            "linkedRelationshipId" : "59",
+            "sourceId" : "132"
           }, {
             "description" : "Lädt Kennzahlen",
-            "destinationId" : "99",
-            "id" : "100",
-            "linkedRelationshipId" : "39",
-            "sourceId" : "94"
+            "destinationId" : "137",
+            "id" : "138",
+            "linkedRelationshipId" : "60",
+            "sourceId" : "132"
           }, {
             "description" : "Fordert Empfehlungen an",
-            "destinationId" : "101",
-            "id" : "102",
-            "linkedRelationshipId" : "40",
-            "sourceId" : "94"
+            "destinationId" : "139",
+            "id" : "140",
+            "linkedRelationshipId" : "61",
+            "sourceId" : "132"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "7",
           "environment" : "Production - On Premise",
-          "id" : "95",
+          "id" : "133",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "23466477-9a86-45ff-8a76-d44c3366199a"
+            "structurizr.dsl.identifier" : "84b8bba9-1ff8-404e-8e78-490d53731eee"
           },
           "relationships" : [ {
             "description" : "Speichert Ergebnisse",
-            "destinationId" : "104",
-            "id" : "105",
-            "linkedRelationshipId" : "41",
-            "sourceId" : "95"
+            "destinationId" : "142",
+            "id" : "143",
+            "linkedRelationshipId" : "62",
+            "sourceId" : "133"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "8",
           "environment" : "Production - On Premise",
-          "id" : "97",
+          "id" : "135",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "b537dbfc-9f81-484e-9b8a-f6adf4dfb92d"
+            "structurizr.dsl.identifier" : "d44f1a1d-4bc1-4d85-819a-b8f3dde421b8"
           },
           "relationships" : [ {
             "description" : "Speichert Governance-Daten",
-            "destinationId" : "104",
-            "id" : "106",
-            "linkedRelationshipId" : "42",
-            "sourceId" : "97"
+            "destinationId" : "142",
+            "id" : "144",
+            "linkedRelationshipId" : "63",
+            "sourceId" : "135"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "9",
           "environment" : "Production - On Premise",
-          "id" : "99",
+          "id" : "137",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "2a6f859b-d24c-4fdb-9a7c-03806b782073"
+            "structurizr.dsl.identifier" : "b956a75f-24a3-4476-bedd-1493c549a939"
           },
           "relationships" : [ {
             "description" : "Liest Kennzahlen",
-            "destinationId" : "104",
-            "id" : "107",
-            "linkedRelationshipId" : "43",
-            "sourceId" : "99"
+            "destinationId" : "142",
+            "id" : "145",
+            "linkedRelationshipId" : "64",
+            "sourceId" : "137"
           } ],
           "tags" : "Container Instance"
         }, {
           "containerId" : "10",
           "environment" : "Production - On Premise",
-          "id" : "101",
+          "id" : "139",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "1b4152a2-809b-43e4-84cb-25940c4e2be9"
+            "structurizr.dsl.identifier" : "9df1cafd-2844-4e5d-a896-51122437742b"
           },
           "relationships" : [ {
             "description" : "Analysiert Entscheidungsdaten",
-            "destinationId" : "104",
-            "id" : "108",
-            "linkedRelationshipId" : "44",
-            "sourceId" : "101"
+            "destinationId" : "142",
+            "id" : "146",
+            "linkedRelationshipId" : "65",
+            "sourceId" : "139"
           } ],
           "tags" : "Container Instance"
         } ],
         "environment" : "Production - On Premise",
-        "id" : "93",
+        "id" : "131",
         "instances" : "1",
         "name" : "Docker Host",
         "properties" : {
-          "structurizr.dsl.identifier" : "9dd8baf5-335b-4fa1-a3de-65855e0ecfc4"
+          "structurizr.dsl.identifier" : "47526a49-16e1-4333-997a-2c975668ec1a"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "Docker Runtime"
@@ -393,29 +393,29 @@
         "containerInstances" : [ {
           "containerId" : "11",
           "environment" : "Production - On Premise",
-          "id" : "104",
+          "id" : "142",
           "instanceId" : 1,
           "properties" : {
-            "structurizr.dsl.identifier" : "918d3b4a-ef8c-4a16-8d4d-c8d6a98ac750"
+            "structurizr.dsl.identifier" : "ae4b3148-e769-476a-8ae3-c2c65ab159d5"
           },
           "tags" : "Container Instance"
         } ],
         "environment" : "Production - On Premise",
-        "id" : "103",
+        "id" : "141",
         "instances" : "1",
         "name" : "Database Server",
         "properties" : {
-          "structurizr.dsl.identifier" : "a0ad3e2c-74a9-4374-b3ce-0ebdb8a9b8b6"
+          "structurizr.dsl.identifier" : "03392b86-ae2c-49c9-9b24-1413d62bf765"
         },
         "tags" : "Element,Deployment Node",
         "technology" : "PostgreSQL"
       } ],
       "environment" : "Production - On Premise",
-      "id" : "92",
+      "id" : "130",
       "instances" : "1",
       "name" : "Customer Data Center",
       "properties" : {
-        "structurizr.dsl.identifier" : "b8c87034-4f30-45e4-b117-7a18debf0a9e"
+        "structurizr.dsl.identifier" : "4e1ef9e2-09a0-42dd-8d13-24201ca69f1a"
       },
       "tags" : "Element,Deployment Node",
       "technology" : "On Premise Infrastructure"
@@ -431,7 +431,7 @@
       "relationships" : [ {
         "description" : "Modelliert Architektur",
         "destinationId" : "5",
-        "id" : "24",
+        "id" : "45",
         "sourceId" : "1",
         "tags" : "Relationship"
       } ],
@@ -447,7 +447,7 @@
       "relationships" : [ {
         "description" : "Analysiert Szenarien",
         "destinationId" : "5",
-        "id" : "25",
+        "id" : "46",
         "sourceId" : "2",
         "tags" : "Relationship"
       } ],
@@ -463,7 +463,7 @@
       "relationships" : [ {
         "description" : "Bewertet Auswirkungen",
         "destinationId" : "5",
-        "id" : "26",
+        "id" : "47",
         "sourceId" : "3",
         "tags" : "Relationship"
       } ],
@@ -478,20 +478,20 @@
       },
       "relationships" : [ {
         "description" : "Entwickelt Features",
-        "destinationId" : "19",
-        "id" : "27",
+        "destinationId" : "40",
+        "id" : "48",
         "sourceId" : "4",
         "tags" : "Relationship"
       }, {
         "description" : "Entwickelt Features",
-        "destinationId" : "18",
-        "id" : "28",
-        "linkedRelationshipId" : "27",
+        "destinationId" : "39",
+        "id" : "49",
+        "linkedRelationshipId" : "48",
         "sourceId" : "4"
       }, {
         "description" : "Startet Builds",
-        "destinationId" : "20",
-        "id" : "29",
+        "destinationId" : "41",
+        "id" : "50",
         "sourceId" : "4",
         "tags" : "Relationship"
       } ],
@@ -509,25 +509,25 @@
         "relationships" : [ {
           "description" : "Startet Simulationen",
           "destinationId" : "7",
-          "id" : "37",
+          "id" : "58",
           "sourceId" : "6",
           "tags" : "Relationship"
         }, {
           "description" : "Verwaltet Governance",
           "destinationId" : "8",
-          "id" : "38",
+          "id" : "59",
           "sourceId" : "6",
           "tags" : "Relationship"
         }, {
           "description" : "Lädt Kennzahlen",
           "destinationId" : "9",
-          "id" : "39",
+          "id" : "60",
           "sourceId" : "6",
           "tags" : "Relationship"
         }, {
           "description" : "Fordert Empfehlungen an",
           "destinationId" : "10",
-          "id" : "40",
+          "id" : "61",
           "sourceId" : "6",
           "tags" : "Relationship"
         } ],
@@ -544,31 +544,31 @@
         "relationships" : [ {
           "description" : "Speichert Ergebnisse",
           "destinationId" : "11",
-          "id" : "41",
+          "id" : "62",
           "sourceId" : "7",
           "tags" : "Relationship"
         }, {
           "description" : "Verarbeitet Szenarien",
           "destinationId" : "14",
-          "id" : "48",
+          "id" : "69",
           "sourceId" : "7",
           "tags" : "Relationship"
         }, {
           "description" : "Nutzt Prozessmodelle",
           "destinationId" : "12",
-          "id" : "49",
+          "id" : "70",
           "sourceId" : "7",
           "tags" : "Relationship"
         }, {
           "description" : "Nutzt Organisationsdaten",
           "destinationId" : "13",
-          "id" : "50",
+          "id" : "71",
           "sourceId" : "7",
           "tags" : "Relationship"
         }, {
           "description" : "Prüft Einschränkungen",
           "destinationId" : "15",
-          "id" : "51",
+          "id" : "72",
           "sourceId" : "7",
           "tags" : "Relationship"
         } ],
@@ -585,25 +585,31 @@
         "relationships" : [ {
           "description" : "Speichert Governance-Daten",
           "destinationId" : "11",
-          "id" : "42",
+          "id" : "63",
           "sourceId" : "8",
           "tags" : "Relationship"
         }, {
           "description" : "Steuert Szenariofreigaben",
           "destinationId" : "14",
-          "id" : "55",
+          "id" : "76",
           "sourceId" : "8",
           "tags" : "Relationship"
         }, {
           "description" : "Steuert Entscheidungsfreigaben",
           "destinationId" : "16",
-          "id" : "56",
+          "id" : "77",
           "sourceId" : "8",
           "tags" : "Relationship"
         }, {
           "description" : "Überwacht Regelkonformität",
           "destinationId" : "15",
-          "id" : "57",
+          "id" : "78",
+          "sourceId" : "8",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Überwacht Entscheidungsstatus",
+          "destinationId" : "18",
+          "id" : "159",
           "sourceId" : "8",
           "tags" : "Relationship"
         } ],
@@ -620,13 +626,13 @@
         "relationships" : [ {
           "description" : "Liest Kennzahlen",
           "destinationId" : "11",
-          "id" : "43",
+          "id" : "64",
           "sourceId" : "9",
           "tags" : "Relationship"
         }, {
           "description" : "Verarbeitet Kennzahlen",
           "destinationId" : "17",
-          "id" : "58",
+          "id" : "79",
           "sourceId" : "9",
           "tags" : "Relationship"
         } ],
@@ -643,13 +649,13 @@
         "relationships" : [ {
           "description" : "Analysiert Entscheidungsdaten",
           "destinationId" : "11",
-          "id" : "44",
+          "id" : "65",
           "sourceId" : "10",
           "tags" : "Relationship"
         }, {
           "description" : "Erzeugt Zweitmeinungen",
           "destinationId" : "16",
-          "id" : "59",
+          "id" : "80",
           "sourceId" : "10",
           "tags" : "Relationship"
         } ],
@@ -696,19 +702,19 @@
         "relationships" : [ {
           "description" : "Referenziert Prozessvarianten",
           "destinationId" : "12",
-          "id" : "45",
+          "id" : "66",
           "sourceId" : "14",
           "tags" : "Relationship"
         }, {
           "description" : "Referenziert Organisationsstruktur",
           "destinationId" : "13",
-          "id" : "46",
+          "id" : "67",
           "sourceId" : "14",
           "tags" : "Relationship"
         }, {
           "description" : "Berücksichtigt Constraints",
           "destinationId" : "15",
-          "id" : "47",
+          "id" : "68",
           "sourceId" : "14",
           "tags" : "Relationship"
         } ],
@@ -735,19 +741,19 @@
         "relationships" : [ {
           "description" : "Bewertet Simulationsergebnisse",
           "destinationId" : "7",
-          "id" : "52",
+          "id" : "73",
           "sourceId" : "16",
           "tags" : "Relationship"
         }, {
           "description" : "Nutzt Kennzahlen",
           "destinationId" : "17",
-          "id" : "53",
+          "id" : "74",
           "sourceId" : "16",
           "tags" : "Relationship"
         }, {
           "description" : "Bewertet Szenarien",
           "destinationId" : "14",
-          "id" : "54",
+          "id" : "75",
           "sourceId" : "16",
           "tags" : "Relationship"
         } ],
@@ -763,6 +769,481 @@
         },
         "tags" : "Element,Container,Domain",
         "technology" : "Domain Module"
+      }, {
+        "description" : "Verwaltet Entscheidungen, Entscheidungsstatus, Entscheidungsgrundlagen und Decision Records",
+        "documentation" : { },
+        "id" : "18",
+        "name" : "Decision Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "decisionService"
+        },
+        "relationships" : [ {
+          "description" : "Vergleicht Entscheidungsoptionen",
+          "destinationId" : "14",
+          "id" : "147",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Nutzt Annahmensets",
+          "destinationId" : "19",
+          "id" : "148",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Nutzt Wirkungsbewertungen",
+          "destinationId" : "20",
+          "id" : "149",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Nutzt Risikobewertungen",
+          "destinationId" : "21",
+          "id" : "150",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Berücksichtigt Empfehlungen",
+          "destinationId" : "22",
+          "id" : "151",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Fordert Freigaben an",
+          "destinationId" : "8",
+          "id" : "152",
+          "sourceId" : "18",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionCore",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Verwaltet Annahmensets, Parameter, Erfahrungswerte, Confidence und Gültigkeit",
+        "documentation" : { },
+        "id" : "19",
+        "name" : "Assumption Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "assumptionService"
+        },
+        "relationships" : [ {
+          "description" : "Liefert Annahmen für Szenarien",
+          "destinationId" : "14",
+          "id" : "153",
+          "sourceId" : "19",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionCore",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Bewertet Auswirkungen auf Kosten, FTE, Durchlaufzeit, Engpässe und Qualität",
+        "documentation" : { },
+        "id" : "20",
+        "name" : "Impact Assessment Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "impactService"
+        },
+        "relationships" : [ {
+          "description" : "Bewertet Simulationsergebnisse",
+          "destinationId" : "7",
+          "id" : "154",
+          "sourceId" : "20",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Nutzt Kennzahlen",
+          "destinationId" : "17",
+          "id" : "155",
+          "sourceId" : "20",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionCore",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Bewertet Risiken, Unsicherheiten und Nebenwirkungen einer Variante",
+        "documentation" : { },
+        "id" : "21",
+        "name" : "Risk Assessment Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "riskService"
+        },
+        "relationships" : [ {
+          "description" : "Berücksichtigt Constraint-Verletzungen",
+          "destinationId" : "15",
+          "id" : "156",
+          "sourceId" : "21",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionCore",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Erzeugt strukturierte Handlungsoptionen, ohne automatisch zu entscheiden",
+        "documentation" : { },
+        "id" : "22",
+        "name" : "Recommendation Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "recommendationService"
+        },
+        "relationships" : [ {
+          "description" : "Nutzt KI-Zweitmeinung",
+          "destinationId" : "10",
+          "id" : "157",
+          "sourceId" : "22",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Liefert Handlungsoptionen",
+          "destinationId" : "18",
+          "id" : "158",
+          "sourceId" : "22",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionCore",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Verwaltet Zustände, Übergänge und Historie von Entscheidungen",
+        "documentation" : { },
+        "id" : "23",
+        "name" : "Decision Lifecycle Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "decisionLifecycleService"
+        },
+        "relationships" : [ {
+          "description" : "Verwaltet Entscheidungszustände",
+          "destinationId" : "18",
+          "id" : "160",
+          "sourceId" : "23",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Fordert Freigaben an",
+          "destinationId" : "24",
+          "id" : "161",
+          "sourceId" : "23",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Startet Beobachtungsphase",
+          "destinationId" : "25",
+          "id" : "162",
+          "sourceId" : "23",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Startet Neubewertung",
+          "destinationId" : "26",
+          "id" : "163",
+          "sourceId" : "23",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Schreibt Historie",
+          "destinationId" : "27",
+          "id" : "164",
+          "sourceId" : "23",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionLifecycle",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Verwaltet Freigaben, Genehmigungen und Eskalationen",
+        "documentation" : { },
+        "id" : "24",
+        "name" : "Approval Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "approvalService"
+        },
+        "relationships" : [ {
+          "description" : "Validiert Governance-Regeln",
+          "destinationId" : "8",
+          "id" : "165",
+          "sourceId" : "24",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionLifecycle",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Überwacht reale Auswirkungen nach der Umsetzung",
+        "documentation" : { },
+        "id" : "25",
+        "name" : "Observation Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "observationService"
+        },
+        "relationships" : [ {
+          "description" : "Überwacht KPIs",
+          "destinationId" : "17",
+          "id" : "166",
+          "sourceId" : "25",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Vergleicht reale Auswirkungen",
+          "destinationId" : "20",
+          "id" : "167",
+          "sourceId" : "25",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionLifecycle",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Bewertet Entscheidungen nach neuen Erkenntnissen erneut",
+        "documentation" : { },
+        "id" : "26",
+        "name" : "Reassessment Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "reassessmentService"
+        },
+        "relationships" : [ {
+          "description" : "Bewertet neue Szenarien",
+          "destinationId" : "14",
+          "id" : "168",
+          "sourceId" : "26",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Berücksichtigt neue Annahmen",
+          "destinationId" : "19",
+          "id" : "169",
+          "sourceId" : "26",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Bewertet neue Risiken",
+          "destinationId" : "21",
+          "id" : "170",
+          "sourceId" : "26",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionLifecycle",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Speichert zeitliche Lineage und Nachvollziehbarkeit",
+        "documentation" : { },
+        "id" : "27",
+        "name" : "Audit Trail Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "auditTrailService"
+        },
+        "relationships" : [ {
+          "description" : "Liefert Auditdaten",
+          "destinationId" : "8",
+          "id" : "171",
+          "sourceId" : "27",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionLifecycle",
+        "technology" : "Domain Service"
+      }, {
+        "description" : "Governancefähiges Entscheidungsobjekt mit Kontext, Status, Version und Verantwortlichkeit",
+        "documentation" : { },
+        "id" : "28",
+        "name" : "Decision",
+        "properties" : {
+          "structurizr.dsl.identifier" : "decisionObject"
+        },
+        "relationships" : [ {
+          "description" : "Enthält Varianten",
+          "destinationId" : "29",
+          "id" : "81",
+          "sourceId" : "28",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Basiert auf Annahmen",
+          "destinationId" : "30",
+          "id" : "82",
+          "sourceId" : "28",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Vergleicht Szenarien",
+          "destinationId" : "31",
+          "id" : "83",
+          "sourceId" : "28",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Nutzt Wirkungsbewertung",
+          "destinationId" : "34",
+          "id" : "84",
+          "sourceId" : "28",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Nutzt Risikobewertung",
+          "destinationId" : "35",
+          "id" : "85",
+          "sourceId" : "28",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Wird freigegeben durch",
+          "destinationId" : "36",
+          "id" : "86",
+          "sourceId" : "28",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Wird dokumentiert als",
+          "destinationId" : "38",
+          "id" : "87",
+          "sourceId" : "28",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionObject",
+        "technology" : "Core Business Object"
+      }, {
+        "description" : "Alternative Handlungsoption innerhalb einer Entscheidung",
+        "documentation" : { },
+        "id" : "29",
+        "name" : "Decision Variant",
+        "properties" : {
+          "structurizr.dsl.identifier" : "decisionVariantObject"
+        },
+        "relationships" : [ {
+          "description" : "Kann Szenario ausprägen",
+          "destinationId" : "31",
+          "id" : "88",
+          "sourceId" : "29",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionObject",
+        "technology" : "Core Business Object"
+      }, {
+        "description" : "Versionierte Sammlung von Annahmen, Parametern und Erfahrungswerten",
+        "documentation" : { },
+        "id" : "30",
+        "name" : "Assumption Set",
+        "properties" : {
+          "structurizr.dsl.identifier" : "assumptionSetObject"
+        },
+        "tags" : "Element,Container,DecisionObject",
+        "technology" : "Core Business Object"
+      }, {
+        "description" : "Bewertbare Szenarioausprägung wie Best Case, Expected Case oder Worst Case",
+        "documentation" : { },
+        "id" : "31",
+        "name" : "Scenario Variant",
+        "properties" : {
+          "structurizr.dsl.identifier" : "scenarioVariantObject"
+        },
+        "relationships" : [ {
+          "description" : "Wird simuliert durch",
+          "destinationId" : "32",
+          "id" : "89",
+          "sourceId" : "31",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionObject",
+        "technology" : "Core Business Object"
+      }, {
+        "description" : "Reproduzierbare Ausführung einer Simulation mit referenzierten Annahmen und Szenario",
+        "documentation" : { },
+        "id" : "32",
+        "name" : "Simulation Run",
+        "properties" : {
+          "structurizr.dsl.identifier" : "simulationRunObject"
+        },
+        "relationships" : [ {
+          "description" : "Erzeugt Ergebnis",
+          "destinationId" : "33",
+          "id" : "90",
+          "sourceId" : "32",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,ImmutableObject",
+        "technology" : "Immutable Business Object"
+      }, {
+        "description" : "Unveränderliches Ergebnis eines Simulationslaufs",
+        "documentation" : { },
+        "id" : "33",
+        "name" : "Simulation Result",
+        "properties" : {
+          "structurizr.dsl.identifier" : "simulationResultObject"
+        },
+        "relationships" : [ {
+          "description" : "Liefert Grundlage für",
+          "destinationId" : "34",
+          "id" : "91",
+          "sourceId" : "33",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,ImmutableObject",
+        "technology" : "Immutable Business Object"
+      }, {
+        "description" : "Bewertung von Auswirkungen auf Kosten, FTE, Durchlaufzeit, Qualität und Engpässe",
+        "documentation" : { },
+        "id" : "34",
+        "name" : "Impact Assessment",
+        "properties" : {
+          "structurizr.dsl.identifier" : "impactAssessmentObject"
+        },
+        "relationships" : [ {
+          "description" : "Beeinflusst Freigabe",
+          "destinationId" : "36",
+          "id" : "93",
+          "sourceId" : "34",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionObject",
+        "technology" : "Versioned Business Object"
+      }, {
+        "description" : "Bewertung von Risiken, Unsicherheiten, Nebenwirkungen und Confidence",
+        "documentation" : { },
+        "id" : "35",
+        "name" : "Risk Assessment",
+        "properties" : {
+          "structurizr.dsl.identifier" : "riskAssessmentObject"
+        },
+        "relationships" : [ {
+          "description" : "Beeinflusst Freigabe",
+          "destinationId" : "36",
+          "id" : "92",
+          "sourceId" : "35",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,DecisionObject",
+        "technology" : "Versioned Business Object"
+      }, {
+        "description" : "Unveränderlicher Nachweis einer Freigabeentscheidung",
+        "documentation" : { },
+        "id" : "36",
+        "name" : "Approval Record",
+        "properties" : {
+          "structurizr.dsl.identifier" : "approvalRecordObject"
+        },
+        "relationships" : [ {
+          "description" : "Wird Teil von",
+          "destinationId" : "38",
+          "id" : "94",
+          "sourceId" : "36",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,ImmutableObject",
+        "technology" : "Immutable Business Object"
+      }, {
+        "description" : "Unveränderliche Beobachtung realer Auswirkungen nach Umsetzung",
+        "documentation" : { },
+        "id" : "37",
+        "name" : "Observation Record",
+        "properties" : {
+          "structurizr.dsl.identifier" : "observationRecordObject"
+        },
+        "relationships" : [ {
+          "description" : "Ergänzt Entscheidungshistorie",
+          "destinationId" : "38",
+          "id" : "95",
+          "sourceId" : "37",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Kann Neubewertung auslösen",
+          "destinationId" : "35",
+          "id" : "96",
+          "sourceId" : "37",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Vergleicht erwartete mit realer Wirkung",
+          "destinationId" : "34",
+          "id" : "97",
+          "sourceId" : "37",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,ImmutableObject",
+        "technology" : "Immutable Business Object"
+      }, {
+        "description" : "Auditierbare Dokumentation der getroffenen Entscheidung inklusive Grundlagen",
+        "documentation" : { },
+        "id" : "38",
+        "name" : "Decision Record",
+        "properties" : {
+          "structurizr.dsl.identifier" : "decisionRecordObject"
+        },
+        "tags" : "Element,Container,ImmutableObject",
+        "technology" : "Immutable Business Object"
       } ],
       "description" : "Governance-fähige Decision-Intelligence-Plattform",
       "documentation" : { },
@@ -777,16 +1258,16 @@
       "containers" : [ {
         "description" : "Source Code Repository",
         "documentation" : { },
-        "id" : "19",
+        "id" : "40",
         "name" : "Git Repository",
         "properties" : {
           "structurizr.dsl.identifier" : "gitRepository"
         },
         "relationships" : [ {
           "description" : "Triggert Pipeline",
-          "destinationId" : "20",
-          "id" : "30",
-          "sourceId" : "19",
+          "destinationId" : "41",
+          "id" : "51",
+          "sourceId" : "40",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -794,28 +1275,28 @@
       }, {
         "description" : "Build-, Test- und Deployment-Pipeline",
         "documentation" : { },
-        "id" : "20",
+        "id" : "41",
         "name" : "CI/CD Pipeline",
         "properties" : {
           "structurizr.dsl.identifier" : "pipeline"
         },
         "relationships" : [ {
           "description" : "Publiziert Docker Images",
-          "destinationId" : "21",
-          "id" : "31",
-          "sourceId" : "20",
+          "destinationId" : "42",
+          "id" : "52",
+          "sourceId" : "41",
           "tags" : "Relationship"
         }, {
           "description" : "Deployt Integration",
-          "destinationId" : "22",
-          "id" : "32",
-          "sourceId" : "20",
+          "destinationId" : "43",
+          "id" : "53",
+          "sourceId" : "41",
           "tags" : "Relationship"
         }, {
           "description" : "Deployt Produktion",
-          "destinationId" : "23",
-          "id" : "33",
-          "sourceId" : "20",
+          "destinationId" : "44",
+          "id" : "54",
+          "sourceId" : "41",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -823,7 +1304,7 @@
       }, {
         "description" : "Speichert Docker Images",
         "documentation" : { },
-        "id" : "21",
+        "id" : "42",
         "name" : "Container Registry",
         "properties" : {
           "structurizr.dsl.identifier" : "containerRegistry"
@@ -833,7 +1314,7 @@
       }, {
         "description" : "Automatisierte Integrationsumgebung",
         "documentation" : { },
-        "id" : "22",
+        "id" : "43",
         "name" : "Integration Environment",
         "properties" : {
           "structurizr.dsl.identifier" : "integrationEnvironment"
@@ -841,8 +1322,8 @@
         "relationships" : [ {
           "description" : "Betreibt Integration",
           "destinationId" : "5",
-          "id" : "34",
-          "sourceId" : "22",
+          "id" : "55",
+          "sourceId" : "43",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -850,7 +1331,7 @@
       }, {
         "description" : "Produktionsumgebung",
         "documentation" : { },
-        "id" : "23",
+        "id" : "44",
         "name" : "Production Environment",
         "properties" : {
           "structurizr.dsl.identifier" : "productionEnvironment"
@@ -858,8 +1339,8 @@
         "relationships" : [ {
           "description" : "Betreibt Produktion",
           "destinationId" : "5",
-          "id" : "36",
-          "sourceId" : "23",
+          "id" : "57",
+          "sourceId" : "44",
           "tags" : "Relationship"
         } ],
         "tags" : "Element,Container",
@@ -868,7 +1349,7 @@
       "description" : "CI/CD- und Deployment-Plattform",
       "documentation" : { },
       "group" : "KAIRON",
-      "id" : "18",
+      "id" : "39",
       "name" : "Delivery Platform",
       "properties" : {
         "structurizr.dsl.identifier" : "deliveryPlatform"
@@ -876,16 +1357,16 @@
       "relationships" : [ {
         "description" : "Betreibt Integration",
         "destinationId" : "5",
-        "id" : "35",
-        "linkedRelationshipId" : "34",
-        "sourceId" : "18"
+        "id" : "56",
+        "linkedRelationshipId" : "55",
+        "sourceId" : "39"
       } ],
       "tags" : "Element,Software System"
     } ]
   },
   "name" : "KAIRON Architecture",
   "properties" : {
-    "structurizr.inspection.error" : "75",
+    "structurizr.inspection.error" : "117",
     "structurizr.inspection.info" : "0",
     "structurizr.inspection.ignore" : "0",
     "structurizr.inspection.warning" : "0"
@@ -903,6 +1384,21 @@
           "shape" : "Cylinder",
           "tag" : "Database"
         }, {
+          "background" : "#ad1457",
+          "color" : "#ffffff",
+          "shape" : "RoundedBox",
+          "tag" : "DecisionCore"
+        }, {
+          "background" : "#00695c",
+          "color" : "#ffffff",
+          "shape" : "RoundedBox",
+          "tag" : "DecisionLifecycle"
+        }, {
+          "background" : "#283593",
+          "color" : "#ffffff",
+          "shape" : "RoundedBox",
+          "tag" : "DecisionObject"
+        }, {
           "background" : "#455a64",
           "color" : "#ffffff",
           "tag" : "Deployment Node"
@@ -911,6 +1407,11 @@
           "color" : "#ffffff",
           "shape" : "Hexagon",
           "tag" : "Domain"
+        }, {
+          "background" : "#4e342e",
+          "color" : "#ffffff",
+          "shape" : "Component",
+          "tag" : "ImmutableObject"
         }, {
           "background" : "#08427b",
           "color" : "#ffffff",
@@ -981,21 +1482,21 @@
       "name" : "Container View: KAIRON Platform",
       "order" : 2,
       "relationships" : [ {
-        "id" : "37"
+        "id" : "58"
       }, {
-        "id" : "38"
+        "id" : "59"
       }, {
-        "id" : "39"
+        "id" : "60"
       }, {
-        "id" : "40"
+        "id" : "61"
       }, {
-        "id" : "41"
+        "id" : "62"
       }, {
-        "id" : "42"
+        "id" : "63"
       }, {
-        "id" : "43"
+        "id" : "64"
       }, {
-        "id" : "44"
+        "id" : "65"
       } ],
       "softwareSystemId" : "5"
     }, {
@@ -1052,35 +1553,328 @@
       "name" : "Container View: KAIRON Platform",
       "order" : 3,
       "relationships" : [ {
-        "id" : "45"
+        "id" : "66"
       }, {
-        "id" : "46"
+        "id" : "67"
       }, {
-        "id" : "47"
+        "id" : "68"
       }, {
-        "id" : "48"
+        "id" : "69"
       }, {
-        "id" : "49"
+        "id" : "70"
       }, {
-        "id" : "50"
+        "id" : "71"
       }, {
-        "id" : "51"
+        "id" : "72"
       }, {
-        "id" : "52"
+        "id" : "73"
       }, {
-        "id" : "53"
+        "id" : "74"
       }, {
-        "id" : "54"
+        "id" : "75"
       }, {
-        "id" : "55"
+        "id" : "76"
       }, {
-        "id" : "56"
+        "id" : "77"
       }, {
-        "id" : "57"
+        "id" : "78"
       }, {
-        "id" : "58"
+        "id" : "79"
       }, {
-        "id" : "59"
+        "id" : "80"
+      } ],
+      "softwareSystemId" : "5"
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "22",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "DecisionIntelligenceCore",
+      "name" : "Container View: KAIRON Platform",
+      "order" : 4,
+      "relationships" : [ {
+        "id" : "147"
+      }, {
+        "id" : "148"
+      }, {
+        "id" : "149"
+      }, {
+        "id" : "150"
+      }, {
+        "id" : "151"
+      }, {
+        "id" : "152"
+      }, {
+        "id" : "153"
+      }, {
+        "id" : "154"
+      }, {
+        "id" : "155"
+      }, {
+        "id" : "156"
+      }, {
+        "id" : "157"
+      }, {
+        "id" : "158"
+      }, {
+        "id" : "159"
+      }, {
+        "id" : "68"
+      }, {
+        "id" : "69"
+      }, {
+        "id" : "72"
+      }, {
+        "id" : "76"
+      }, {
+        "id" : "78"
+      } ],
+      "softwareSystemId" : "5"
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "24",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "25",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "26",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "DecisionLifecycle",
+      "name" : "Container View: KAIRON Platform",
+      "order" : 5,
+      "relationships" : [ {
+        "id" : "147"
+      }, {
+        "id" : "148"
+      }, {
+        "id" : "149"
+      }, {
+        "id" : "150"
+      }, {
+        "id" : "152"
+      }, {
+        "id" : "153"
+      }, {
+        "id" : "155"
+      }, {
+        "id" : "159"
+      }, {
+        "id" : "160"
+      }, {
+        "id" : "161"
+      }, {
+        "id" : "162"
+      }, {
+        "id" : "163"
+      }, {
+        "id" : "164"
+      }, {
+        "id" : "165"
+      }, {
+        "id" : "166"
+      }, {
+        "id" : "167"
+      }, {
+        "id" : "168"
+      }, {
+        "id" : "169"
+      }, {
+        "id" : "170"
+      }, {
+        "id" : "171"
+      }, {
+        "id" : "76"
+      } ],
+      "softwareSystemId" : "5"
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "33",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "37",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "38",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "CoreDecisionObjectModel",
+      "name" : "Container View: KAIRON Platform",
+      "order" : 6,
+      "relationships" : [ {
+        "id" : "81"
+      }, {
+        "id" : "82"
+      }, {
+        "id" : "83"
+      }, {
+        "id" : "84"
+      }, {
+        "id" : "85"
+      }, {
+        "id" : "86"
+      }, {
+        "id" : "87"
+      }, {
+        "id" : "88"
+      }, {
+        "id" : "89"
+      }, {
+        "id" : "90"
+      }, {
+        "id" : "91"
+      }, {
+        "id" : "92"
+      }, {
+        "id" : "93"
+      }, {
+        "id" : "94"
+      }, {
+        "id" : "95"
+      }, {
+        "id" : "96"
+      }, {
+        "id" : "97"
       } ],
       "softwareSystemId" : "5"
     }, {
@@ -1100,48 +1894,48 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "19",
+        "id" : "40",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "20",
+        "id" : "41",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "21",
+        "id" : "42",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "22",
+        "id" : "43",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "23",
+        "id" : "44",
         "x" : 0,
         "y" : 0
       } ],
       "externalSoftwareSystemBoundariesVisible" : false,
       "key" : "DeliveryPipeline",
       "name" : "Container View: Delivery Platform",
-      "order" : 5,
+      "order" : 8,
       "relationships" : [ {
-        "id" : "27"
+        "id" : "48"
       }, {
-        "id" : "29"
+        "id" : "50"
       }, {
-        "id" : "30"
+        "id" : "51"
       }, {
-        "id" : "31"
+        "id" : "52"
       }, {
-        "id" : "32"
+        "id" : "53"
       }, {
-        "id" : "33"
+        "id" : "54"
       }, {
-        "id" : "34"
+        "id" : "55"
       }, {
-        "id" : "36"
+        "id" : "57"
       } ],
-      "softwareSystemId" : "18"
+      "softwareSystemId" : "39"
     } ],
     "deploymentViews" : [ {
       "automaticLayout" : {
@@ -1152,147 +1946,7 @@
         "vertices" : true
       },
       "elements" : [ {
-        "id" : "60",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "61",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "62",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "64",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "66",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "68",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "70",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "environment" : "Integration",
-      "key" : "DeploymentIntegration",
-      "name" : "Deployment View: Integration",
-      "order" : 6,
-      "relationships" : [ {
-        "id" : "63"
-      }, {
-        "id" : "65"
-      }, {
-        "id" : "67"
-      }, {
-        "id" : "69"
-      }, {
-        "id" : "71"
-      }, {
-        "id" : "72"
-      }, {
-        "id" : "73"
-      }, {
-        "id" : "74"
-      } ]
-    }, {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "elements" : [ {
-        "id" : "75",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "76",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "77",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "78",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "80",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "82",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "84",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "86",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "87",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "environment" : "Production - Swiss PaaS",
-      "key" : "DeploymentSwissPaaS",
-      "name" : "Deployment View: Production - Swiss PaaS",
-      "order" : 7,
-      "relationships" : [ {
-        "id" : "79"
-      }, {
-        "id" : "81"
-      }, {
-        "id" : "83"
-      }, {
-        "id" : "85"
-      }, {
-        "id" : "88"
-      }, {
-        "id" : "89"
-      }, {
-        "id" : "90"
-      }, {
-        "id" : "91"
-      } ]
-    }, {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "elements" : [ {
-        "id" : "92",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "93",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "94",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "95",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "97",
+        "id" : "98",
         "x" : 0,
         "y" : 0
       }, {
@@ -1300,38 +1954,178 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "101",
+        "id" : "100",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "103",
+        "id" : "102",
         "x" : 0,
         "y" : 0
       }, {
         "id" : "104",
         "x" : 0,
         "y" : 0
+      }, {
+        "id" : "106",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "108",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "environment" : "Integration",
+      "key" : "DeploymentIntegration",
+      "name" : "Deployment View: Integration",
+      "order" : 9,
+      "relationships" : [ {
+        "id" : "101"
+      }, {
+        "id" : "103"
+      }, {
+        "id" : "105"
+      }, {
+        "id" : "107"
+      }, {
+        "id" : "109"
+      }, {
+        "id" : "110"
+      }, {
+        "id" : "111"
+      }, {
+        "id" : "112"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "113",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "114",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "115",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "116",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "118",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "120",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "122",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "124",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "125",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "environment" : "Production - Swiss PaaS",
+      "key" : "DeploymentSwissPaaS",
+      "name" : "Deployment View: Production - Swiss PaaS",
+      "order" : 10,
+      "relationships" : [ {
+        "id" : "117"
+      }, {
+        "id" : "119"
+      }, {
+        "id" : "121"
+      }, {
+        "id" : "123"
+      }, {
+        "id" : "126"
+      }, {
+        "id" : "127"
+      }, {
+        "id" : "128"
+      }, {
+        "id" : "129"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "130",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "131",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "132",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "133",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "135",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "137",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "139",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "141",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "142",
+        "x" : 0,
+        "y" : 0
       } ],
       "environment" : "Production - On Premise",
       "key" : "DeploymentOnPremise",
       "name" : "Deployment View: Production - On Premise",
-      "order" : 8,
+      "order" : 11,
       "relationships" : [ {
-        "id" : "100"
+        "id" : "134"
       }, {
-        "id" : "102"
+        "id" : "136"
       }, {
-        "id" : "105"
+        "id" : "138"
       }, {
-        "id" : "106"
+        "id" : "140"
       }, {
-        "id" : "107"
+        "id" : "143"
       }, {
-        "id" : "108"
+        "id" : "144"
       }, {
-        "id" : "96"
+        "id" : "145"
       }, {
-        "id" : "98"
+        "id" : "146"
       } ]
     } ],
     "systemContextViews" : [ {
@@ -1359,7 +2153,7 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "18",
+        "id" : "39",
         "x" : 0,
         "y" : 0
       } ],
@@ -1368,13 +2162,13 @@
       "name" : "System Context View: KAIRON Platform",
       "order" : 1,
       "relationships" : [ {
-        "id" : "24"
+        "id" : "45"
       }, {
-        "id" : "25"
+        "id" : "46"
       }, {
-        "id" : "26"
+        "id" : "47"
       }, {
-        "id" : "35"
+        "id" : "56"
       } ],
       "softwareSystemId" : "5"
     }, {
@@ -1394,20 +2188,20 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "18",
+        "id" : "39",
         "x" : 0,
         "y" : 0
       } ],
       "enterpriseBoundaryVisible" : true,
       "key" : "DeliveryPlatform",
       "name" : "System Context View: Delivery Platform",
-      "order" : 4,
+      "order" : 7,
       "relationships" : [ {
-        "id" : "28"
+        "id" : "49"
       }, {
-        "id" : "35"
+        "id" : "56"
       } ],
-      "softwareSystemId" : "18"
+      "softwareSystemId" : "39"
     } ]
   }
 }

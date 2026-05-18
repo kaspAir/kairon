@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · {{ page.title }}{% endblock %}
+{% block content %}
+<section class="hero-panel">
+  <div>
+    <div class="eyebrow">{{ page.eyebrow }}</div>
+    <h1>{{ page.title }}</h1>
+    <p class="lead">{{ page.text }}</p>
+  </div>
+  <div class="system-strip" aria-label="Workspace Orientierung">
+    <span class="badge draft">/api official</span>
+    <span class="badge review">MVP prepared</span>
+  </div>
+</section>
+
+<section class="grid three section">
+  <div class="card compact"><h3>Open Decisions</h3><div class="metric-value">{{ summary.open_decisions }}</div><p class="muted">Aktive Entscheidungsräume.</p></div>
+  <div class="card compact"><h3>Critical Risks</h3><div class="metric-value">{{ summary.critical_risks }}</div><p class="muted">Risiken mit hoher Priorität.</p></div>
+  <div class="card compact"><h3>Pending Approvals</h3><div class="metric-value">{{ summary.pending_approvals }}</div><p class="muted">Governance-Arbeit offen.</p></div>
+</section>
+
+<section class="section card">
+  <div class="toolbar">
+    <div>
+      <h2>Relevante Decisions</h2>
+      <p class="muted">Diese Seite ist als stabiler Navigationsanker vorbereitet. Die Detailarbeit erfolgt im Decision Workspace.</p>
+    </div>
+    <a class="btn ghost" href="{{ url_for('ui.home') }}">Zurück zum Control Center</a>
+  </div>
+  {% if decisions %}
+    <div class="decision-list">
+      {% for decision in decisions %}
+        {% include 'components/decision_card.html' %}
+      {% endfor %}
+    </div>
+  {% else %}
+    {% set title = page.empty_title %}
+    {% set text = page.empty_text %}
+    {% include 'components/empty_state.html' %}
+  {% endif %}
+</section>
+{% endblock %}

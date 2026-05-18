@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · Decision Control Center{% endblock %}
+{% block content %}
+<section class="hero-panel">
+  <div>
+    <div class="eyebrow">Decision Control Center</div>
+    <h1>Aktuelle Decisions untersuchen, vergleichen und governancefähig absichern</h1>
+    <p class="lead">KAIRON macht Entscheidungsgrundlagen sichtbar: Varianten, Szenarien, Simulationen, Risiken, Confidence und Governance-Zustände stehen im Mittelpunkt.</p>
+  </div>
+  <div class="system-strip" aria-label="Systemstatus">
+    <span class="badge review">{{ summary.environment }}</span>
+    <span class="badge draft">Build: {{ summary.build_status }}</span>
+    <span class="badge approved">API Health: {{ summary.api_health }}</span>
+  </div>
+</section>
+
+{% if not summary.demo_available %}
+<section class="card demo-panel section" aria-label="Golden Demo">
+  <div>
+    <div class="eyebrow">Golden Demo</div>
+    <h2>AI-based Invoice Processing Automation</h2>
+    <p class="muted">Lade einen vollständigen Enterprise-Entscheidungsfall mit Varianten, Szenarien, Simulationen, Impact, Risiken, Governance und Observations. Die Empty States bleiben sichtbar, solange keine Demo- oder Echtdaten vorhanden sind.</p>
+  </div>
+  <form method="post" action="{{ url_for('ui.load_demo_seed') }}">
+    <button class="btn" type="submit">Golden Demo laden</button>
+  </form>
+</section>
+{% endif %}
+
+<section class="grid five section" aria-label="Dashboard Kennzahlen">
+  <a class="card metric link-card" href="#decision-list"><div class="metric-value">{{ summary.open_decisions }}</div><div class="metric-label">Open Decisions</div><div class="metric-note">Aktive Entscheidungsräume öffnen</div></a>
+  <a class="card metric link-card" href="{{ url_for('ui.governance_overview') }}"><div class="metric-value">{{ summary.critical_risks }}</div><div class="metric-label">Critical Risks</div><div class="metric-note">Risiken priorisiert prüfen</div></a>
+  <a class="card metric link-card" href="{{ url_for('ui.scenarios_overview') }}"><div class="metric-value">{{ summary.recent_simulations }}</div><div class="metric-label">Recent Simulations</div><div class="metric-note">Letzte Simulationsgrundlagen</div></a>
+  <a class="card metric link-card" href="{{ url_for('ui.governance_overview') }}"><div class="metric-value">{{ summary.pending_approvals }}</div><div class="metric-label">Pending Approvals</div><div class="metric-note">Governance-Arbeit offen</div></a>
+  <a class="card metric link-card" href="{{ url_for('ui.analytics_overview') }}"><div class="metric-value">{{ summary.reassessments_needed }}</div><div class="metric-label">Reassessments Needed</div><div class="metric-note">Nachprüfung empfohlen</div></a>
+</section>
+
+<section class="dashboard-layout section">
+  <div id="decision-list" class="card decision-list-panel">
+    <div class="toolbar">
+      <div>
+        <h2>Aktuelle Decisions</h2>
+        <p class="muted">Der primäre Einstieg in KAIRON: Jede Decision bündelt Varianten, Szenarien, Risiken, Simulationen und Governance-Zustände.</p>
+      </div>
+      <span class="badge draft">{{ decisions|length }} total</span>
+    </div>
+    {% if decisions %}
+      <div class="decision-list">
+        {% for decision in decisions %}
+          {% include 'components/decision_card.html' %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {% set title = 'Noch keine Decision vorhanden' %}
+      {% set text = 'Lege eine Decision an, sobald ein Entscheidungsbedarf mit Varianten, Annahmen oder Governance-Relevanz entsteht. Danach wird diese Liste zum zentralen Workspace-Einstieg.' %}
+      {% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+
+  <aside class="card create-panel secondary-create">
+    <details>
+      <summary>Neue Decision erfassen</summary>
+      <p class="muted">Sekundärer Einstieg. Nach dem Speichern arbeitest du im Decision Workspace weiter.</p>
+      <form method="post" action="{{ url_for('ui.create_decision') }}">
+        <label for="title">Titel</label>
+        <input id="title" name="title" required placeholder="z. B. Automatisierung Rechnungseingang">
+        <label for="description">Beschreibung</label>
+        <textarea id="description" name="description" placeholder="Kontext, Ziel, Entscheidungsbedarf"></textarea>
+        <label for="created_by">Created by</label>
+        <input id="created_by" name="created_by" value="system">
+        <button class="btn" type="submit">Decision anlegen</button>
+      </form>
+    </details>
+  </aside>
+</section>
+
+
+{% endblock %}

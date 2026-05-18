@@ -1,0 +1,6 @@
+{% set label = {
+  'better_than_expected': 'Besser als erwartet',
+  'worse_than_expected': 'Schlechter als erwartet',
+  'unchanged': 'Unverändert'
+}.get(delta, 'Unverändert') %}
+<span class="delta-badge {{ delta or 'unchanged' }}">{{ label }}</span>
