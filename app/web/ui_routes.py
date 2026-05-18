@@ -10,6 +10,7 @@ from flask import Blueprint, current_app, redirect, render_template, request, ur
 
 from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
+from app.domains.context.risk_config import get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
 from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFIDENCE_VALUES
 from app.domains.assessment.service import RiskAssessmentService
@@ -116,6 +117,40 @@ def _dominant_risk(decision: Decision) -> RiskAssessment | None:
     return sorted(decision.risk_assessments, key=lambda risk: severity_rank.get(risk.severity, 0), reverse=True)[0]
 
 
+
+def _risk_contexts(decision: Decision) -> list:
+    return [obj for obj in decision.context_objects if obj.context_type == "risk"]
+
+
+def _risk_context_view_model(obj) -> dict:
+    metadata = obj.metadata_json or {}
+    return {
+        "id": obj.id,
+        "name": obj.name,
+        "description": obj.description,
+        "source": obj.source,
+        "owner": obj.owner,
+        "confidence": obj.confidence,
+        "category": metadata.get("category"),
+        "probability": metadata.get("probability"),
+        "impact": metadata.get("impact"),
+        "severity": metadata.get("severity", "medium"),
+        "impact_area": metadata.get("impact_area"),
+        "mitigation": metadata.get("mitigation"),
+        "risk_owner": metadata.get("risk_owner") or obj.owner,
+        "review_required": bool(metadata.get("review_required")),
+        "created_at": obj.created_at,
+    }
+
+
+def _dominant_risk_context(decision: Decision) -> dict | None:
+    severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+    risks = [_risk_context_view_model(obj) for obj in _risk_contexts(decision)]
+    if not risks:
+        return None
+    return sorted(risks, key=lambda risk: severity_rank.get(risk.get("severity"), 0), reverse=True)[0]
+
+
 def _latest_approval(decision: Decision) -> ApprovalRecord | None:
     if not decision.approval_records:
         return None
@@ -143,8 +178,12 @@ def _decision_confidence(decision: Decision) -> str:
     return _confidence_label(sum(scores) / len(scores))
 
 
-def _risk_label(risk: RiskAssessment | None) -> str:
-    return risk.severity if risk else "none"
+def _risk_label(risk) -> str:
+    if not risk:
+        return "none"
+    if isinstance(risk, dict):
+        return risk.get("severity", "none")
+    return risk.severity
 
 
 def _governance_state(decision: Decision) -> str:
@@ -155,7 +194,7 @@ def _governance_state(decision: Decision) -> str:
         return "approved"
     if latest_approval:
         return "governance_reviewed"
-    if decision.risk_assessments:
+    if decision.risk_assessments or _risk_contexts(decision):
         return "risk_reviewed"
     if any(_latest_simulation(scenario) for scenario in decision.scenarios):
         return "simulated"
@@ -198,7 +237,7 @@ def _decision_card_view_model(decision: Decision) -> dict:
     latest_runs = [_latest_simulation(scenario) for scenario in decision.scenarios]
     latest_runs = [run for run in latest_runs if run is not None]
     latest_run = sorted(latest_runs, key=lambda run: run.created_at, reverse=True)[0] if latest_runs else None
-    dominant_risk = _dominant_risk(decision)
+    dominant_risk = _dominant_risk_context(decision) or _dominant_risk(decision)
     governance_state = _governance_state(decision)
     return {
         "id": decision.id,
@@ -209,24 +248,24 @@ def _decision_card_view_model(decision: Decision) -> dict:
         "created_at": decision.created_at,
         "variant_count": len(decision.variants),
         "scenario_count": len(decision.scenarios),
-        "risk_count": len(decision.risk_assessments),
+        "risk_count": len(_risk_contexts(decision)) or len(decision.risk_assessments),
         "latest_simulation": latest_run,
         "latest_simulation_status": "simulated" if latest_run else "not_simulated",
         "confidence": _decision_confidence(decision),
-        "dominant_risk": dominant_risk,
+        "dominant_risk": _dominant_risk_context(decision) or dominant_risk,
         "pending_governance_state": _pending_governance_state(decision),
         "allowed_status_transitions": _status_transition_actions(decision),
     }
 
 
 def _dashboard_summary(session, decisions: list[Decision]) -> dict:
-    high_risks = session.query(RiskAssessment).filter(RiskAssessment.severity.in_(["high", "critical"])).count()
+    critical_risks = sum(1 for decision in decisions for risk in _risk_contexts(decision) if (risk.metadata_json or {}).get("severity") == "critical")
     recent_simulations = session.query(SimulationRun).order_by(SimulationRun.created_at.desc()).limit(5).all()
     pending_approvals = sum(1 for decision in decisions if _governance_state(decision) != "approved")
-    reassessments_needed = sum(1 for decision in decisions if _dominant_risk(decision) and _governance_state(decision) != "approved")
+    reassessments_needed = sum(1 for decision in decisions if (_dominant_risk_context(decision) or _dominant_risk(decision)) and _governance_state(decision) != "approved")
     return {
         "open_decisions": sum(1 for decision in decisions if _governance_state(decision) not in {"approved", "archived"}),
-        "critical_risks": high_risks,
+        "critical_risks": critical_risks,
         "recent_simulations": len(recent_simulations),
         "pending_approvals": pending_approvals,
         "reassessments_needed": reassessments_needed,
@@ -246,7 +285,7 @@ def _decision_or_404(session, decision_id: str) -> Decision:
 
 def _comparison_rows(decision: Decision) -> list[dict]:
     rows = []
-    dominant_risk = _dominant_risk(decision)
+    dominant_risk = _dominant_risk_context(decision) or _dominant_risk(decision)
     scenarios_by_variant = {}
     for scenario in decision.scenarios:
         scenarios_by_variant.setdefault(scenario.variant_id, []).append(scenario)
@@ -346,6 +385,7 @@ def _context_summary(decision: Decision) -> dict:
         "counts": counts,
         "type_options": [(context_type, CONTEXT_TYPE_LABELS[context_type]) for context_type in CONTEXT_TYPES],
         "confidence_options": CONFIDENCE_VALUES,
+        "risk_taxonomy": get_risk_taxonomy().as_dict(),
     }
 
 def _observation_records(decision: Decision) -> list[dict]:
@@ -377,7 +417,8 @@ def _workspace_view_model(decision: Decision) -> dict:
         "comparison_rows": rows,
         "scenario_rows": _scenario_rows(decision),
         "latest_record": latest_record,
-        "dominant_risk": _dominant_risk(decision),
+        "dominant_risk": _dominant_risk_context(decision) or _dominant_risk(decision),
+        "risk_contexts": [_risk_context_view_model(obj) for obj in _risk_contexts(decision)],
         "governance_status": _governance_state(decision),
         "status_sequence": STATUS_SEQUENCE,
         "status_labels": DECISION_STATUS_LABELS,
@@ -617,16 +658,26 @@ def simulate_scenario(scenario_id):
 def create_risk(decision_id):
     try:
         with session_scope() as session:
-            RiskAssessmentService(session).create_risk_assessment(
+            DecisionContextService(session).create_risk_context(
                 decision_id=decision_id,
-                summary=request.form.get("summary", ""),
-                severity=request.form.get("severity", "medium"),
+                name=request.form.get("name") or request.form.get("summary"),
+                summary=request.form.get("summary") or request.form.get("name"),
+                description=request.form.get("description") or None,
+                category=request.form.get("category") or None,
+                probability=request.form.get("probability") or None,
+                impact=request.form.get("impact") or None,
+                severity=request.form.get("severity") or None,
+                impact_area=request.form.get("impact_area") or None,
                 mitigation=request.form.get("mitigation") or None,
-                created_by=_created_by(),
+                risk_owner=request.form.get("risk_owner") or None,
+                review_required=request.form.get("review_required") == "on",
+                source=request.form.get("source") or None,
+                owner=request.form.get("owner") or request.form.get("risk_owner") or None,
+                confidence=request.form.get("confidence", "medium"),
             )
-        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Risk assessment saved", level="success"))
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Risk context saved", level="success") + "#risks")
     except ValueError as exc:
-        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error"))
+        return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error") + "#risks")
 
 
 @bp.post("/decisions/<decision_id>/approvals")

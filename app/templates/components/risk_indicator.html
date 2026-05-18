@@ -1,5 +1,7 @@
+{% set severity = risk.severity if risk else 'none' %}
+{% set label = severity|replace('_', ' ')|title %}
 {% if risk %}
-  <span class="indicator risk {{ risk.severity }}">{{ risk.severity|title }} risk</span>
+  <span class="indicator risk {{ severity }}">{{ label }} risk</span>
 {% else %}
   <span class="indicator risk none">No assessed risk</span>
 {% endif %}

@@ -384,3 +384,27 @@ details summary { cursor: pointer; font-weight: 850; color: var(--color-primary)
   font-weight: 700;
   padding: 0.4rem 0.75rem;
 }
+
+.checkbox-line {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.checkbox-line input {
+  width: auto;
+}
+
+.meta-grid.compact-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+  font-size: 0.86rem;
+}
+
+.risk-context-card .indicator {
+  margin-bottom: var(--spacing-sm);
+}
