@@ -11,7 +11,7 @@ from flask import Blueprint, current_app, redirect, render_template, request, ur
 from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
 from app.domains.context.risk_config import get_risk_taxonomy
-from app.domains.context.services.decision_context_service import DecisionContextService
+from app.domains.context.service import DecisionContextService
 from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFIDENCE_VALUES
 from app.domains.assessment.service import RiskAssessmentService
 from app.domains.decision.models import Decision
