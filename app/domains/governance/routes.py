@@ -1,10 +1,8 @@
 from flask import Blueprint, jsonify, request
 
-from app.domains.assessment.service import RiskAssessmentService
 from app.domains.governance.schemas import (
     ApprovalCreateSchema,
     DecisionRecordResponseSchema,
-    RiskAssessmentCreateSchema,
     SimpleGovernanceResponseSchema,
 )
 from app.domains.governance.service import GovernanceService
@@ -17,20 +15,6 @@ bp = Blueprint("governance", __name__)
 
 def payload():
     return request.get_json(silent=True) or {}
-
-
-@bp.post("/decisions/<decision_id>/risks")
-def create_risk(decision_id):
-    data = load_json(RiskAssessmentCreateSchema(), payload())
-    with session_scope() as session:
-        risk = RiskAssessmentService(session).create_risk_assessment(
-            decision_id=decision_id,
-            summary=data["summary"],
-            severity=data.get("severity", "medium"),
-            mitigation=data.get("mitigation"),
-            created_by=actor_from_request(data),
-        )
-        return jsonify(SimpleGovernanceResponseSchema().dump(risk)), 201
 
 
 @bp.post("/decisions/<decision_id>/approvals")

@@ -1,6 +1,7 @@
 from flask import Flask
 
 from app.config import get_config
+from app.domains.context.routes import bp as context_bp
 from app.domains.decision.routes import bp as decision_bp
 from app.domains.governance.routes import bp as governance_bp
 from app.domains.observation.routes import bp as observation_bp
@@ -45,7 +46,7 @@ def create_app(config_class=None):
 
 
 def _register_blueprints(app, url_prefix=None, name_prefix=None):
-    registrations = [core_bp, decision_bp, scenario_bp, simulation_bp, governance_bp, observation_bp]
+    registrations = [core_bp, decision_bp, scenario_bp, simulation_bp, context_bp, governance_bp, observation_bp]
     for blueprint in registrations:
         kwargs = {}
         if url_prefix:
