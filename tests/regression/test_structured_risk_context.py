@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import requests
 
-from app.domains.context.risk_config import ContextTaxonomy
+from app.domains.context.risk_config import ContextTaxonomy, get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
 from app.domains.decision.service import DecisionService
 from app.shared.database import init_engine, session_scope
@@ -22,6 +22,34 @@ def _create_decision(title="Structured risk decision"):
     )
     assert response.status_code == 201
     return response.json()["id"]
+
+
+def test_risk_taxonomy_defaults_are_loaded(monkeypatch):
+    monkeypatch.delenv("KAIRON_RISK_PROBABILITY_VALUES", raising=False)
+    monkeypatch.delenv("KAIRON_RISK_IMPACT_VALUES", raising=False)
+    monkeypatch.delenv("KAIRON_RISK_SEVERITY_VALUES", raising=False)
+    monkeypatch.delenv("KAIRON_RISK_IMPACT_AREA_VALUES", raising=False)
+
+    taxonomy = get_risk_taxonomy()
+
+    assert taxonomy.probability_values == ("low", "medium", "high")
+    assert taxonomy.impact_values == ("low", "medium", "high")
+    assert taxonomy.severity_values == ("low", "medium", "high", "critical")
+    assert "compliance" in taxonomy.impact_area_values
+
+
+def test_risk_taxonomy_can_be_overridden_from_environment(monkeypatch):
+    monkeypatch.setenv("KAIRON_RISK_PROBABILITY_VALUES", "rare,possible,almost_certain")
+    monkeypatch.setenv("KAIRON_RISK_IMPACT_VALUES", "minor,major,severe")
+    monkeypatch.setenv("KAIRON_RISK_SEVERITY_VALUES", "1,2,3,4")
+    monkeypatch.setenv("KAIRON_RISK_IMPACT_AREA_VALUES", "finance,cyber,operations")
+
+    taxonomy = get_risk_taxonomy()
+
+    assert taxonomy.probability_values == ("rare", "possible", "almost_certain")
+    assert taxonomy.impact_values == ("minor", "major", "severe")
+    assert taxonomy.severity_values == ("1", "2", "3", "4")
+    assert taxonomy.impact_area_values == ("finance", "cyber", "operations")
 
 
 def test_api_can_create_structured_risk_context_with_defaults():
@@ -93,6 +121,9 @@ def test_ui_renders_risk_taxonomy_values_and_created_risk_context():
     detail = session.get(f"{BASE_URL}{detail_path}")
     assert detail.status_code == 200
     assert "Structured Risk Context" in detail.text
+    assert "Risk Taxonomy anzeigen" in detail.text
+    assert 'Probability <span class="muted">(Risk Taxonomy)</span>' in detail.text
+    assert "Severity / Risikozahl" in detail.text
     assert "Cost" in detail.text
     assert "Compliance" in detail.text
     assert "Critical" in detail.text
@@ -126,3 +157,16 @@ def test_dashboard_counts_critical_risk_contexts_after_demo_seed():
     assert dashboard.status_code == 200
     assert "Critical Risks" in dashboard.text
     assert not re.search(r'<div class="metric-value">0</div><div class="metric-label">Critical Risks', dashboard.text)
+
+
+def test_ui_shows_active_risk_taxonomy_page():
+    page = requests.get(f"{BASE_URL}/ui/risk-taxonomy")
+
+    assert page.status_code == 200
+    assert "Aktive Risk Taxonomy" in page.text
+    assert "KAIRON_RISK_PROBABILITY_VALUES" in page.text
+    assert "KAIRON_RISK_IMPACT_VALUES" in page.text
+    assert "KAIRON_RISK_SEVERITY_VALUES" in page.text
+    assert "KAIRON_RISK_IMPACT_AREA_VALUES" in page.text
+    assert "low,medium,high" in page.text
+    assert "low,medium,high,critical" in page.text

@@ -177,31 +177,37 @@ def test_api_can_create_observation_record():
     assert body["status"] == "observed"
 
 
-def test_ui_can_create_context_object_in_decision_workspace():
+def test_ui_renders_active_risk_taxonomy_values():
+    response = requests.get(f"{BASE_URL}/ui/taxonomy")
+
+    assert response.status_code == 200
+    assert "Aktive Risk Taxonomy" in response.text
+    assert "Probability" in response.text
+    assert "Impact" in response.text
+    assert "Severity / Risikozahl" in response.text
+    assert "Impact Area" in response.text
+    for expected in ["low", "medium", "high", "financial", "operational", "compliance", "technical", "organizational"]:
+        assert expected in response.text
+
+
+def test_ui_risk_form_uses_active_taxonomy_values():
     session = requests.Session()
     response = session.post(
         f"{BASE_URL}/ui/decisions",
-        data={"title": "Context UI decision", "description": "Structured context", "created_by": "ui-test"},
+        data={"title": "Taxonomy risk form decision", "description": "Risk taxonomy visible", "created_by": "ui-test"},
         allow_redirects=False,
     )
+
     assert response.status_code == 302
     detail_url = response.headers["Location"]
-    detail_path = detail_url if detail_url.startswith("/ui/") else detail_url.replace(BASE_URL, "")
+    detail = session.get(detail_url if detail_url.startswith("http") else f"{BASE_URL}{detail_url}")
 
-    create_context = session.post(
-        f"{BASE_URL}{detail_path}/context-objects",
-        data={
-            "context_type": "organization",
-            "name": "Finance shared services",
-            "description": "Responsible organization context",
-            "source": "operating model",
-            "owner": "CFO Office",
-            "confidence": "high",
-        },
-        allow_redirects=True,
-    )
-
-    assert create_context.status_code == 200
-    assert "Finance shared services" in create_context.text
-    assert "Organization Context" in create_context.text
-    assert "Confidence High" in create_context.text
+    assert detail.status_code == 200
+    assert "Die Auswahlwerte stammen aus der aktiven Risk Taxonomy" in detail.text
+    assert "Risk Taxonomy anzeigen" in detail.text
+    assert 'name="probability"' in detail.text
+    assert 'name="impact"' in detail.text
+    assert 'name="severity"' in detail.text
+    assert 'name="impact_area"' in detail.text
+    for expected in ["Low", "Medium", "High", "Critical", "Financial", "Operational", "Compliance", "Technical", "Organizational"]:
+        assert expected in detail.text

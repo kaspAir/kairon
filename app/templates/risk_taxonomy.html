@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero compact-hero">
+  <div>
+    <div class="eyebrow">Risk Taxonomy</div>
+    <h1>Aktive Risk Taxonomy</h1>
+    <p class="lead">Diese Skalen konfigurieren, welche Werte im Structured-Risk-Context verwendet werden dürfen. Risk Contexts bleiben Decision Context Objects; die Taxonomy ist Konfiguration.</p>
+  </div>
+  <a class="btn secondary" href="{{ return_url or url_for('ui.home') }}">Zurück</a>
+</section>
+
+<section class="grid two section">
+  {% for group in taxonomy_groups %}
+    <div class="card">
+      <div class="section-heading compact-heading">
+        <div>
+          <div class="eyebrow">{{ group.env_name }}</div>
+          <h2>{{ group.title }}</h2>
+          <p class="muted">{{ group.description }}</p>
+        </div>
+      </div>
+      <div class="tag-list">
+        {% for value in group.entries %}
+          <span class="tag">{{ value|replace('_', ' ')|title }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</section>
+
+<section class="card section">
+  <h2>Konfiguration</h2>
+  <p class="muted">Für V0.x wird die Risk Taxonomy bewusst über Environment-Variablen verwaltet. So bleibt die Structured-Risk-Context-Architektur schlank, testbar und ohne zweite Risk-Konfigurationslogik.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Aktiver Wert</th></tr></thead>
+      <tbody>
+        {% for group in taxonomy_groups %}
+          <tr>
+            <td><code>{{ group.env_name }}</code></td>
+            <td><code>{{ group.entries|join(',') }}</code></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

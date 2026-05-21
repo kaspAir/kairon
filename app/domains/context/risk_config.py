@@ -4,57 +4,52 @@ import os
 from dataclasses import dataclass
 
 
-def _csv_or_default(env_name: str, default: tuple[str, ...]) -> tuple[str, ...]:
-    raw = os.getenv(env_name)
-    if not raw:
-        return default
-    values = tuple(value.strip().lower() for value in raw.split(",") if value.strip())
-    return values or default
-
-
 @dataclass(frozen=True)
-class ContextTaxonomy:
-    """Configurable taxonomy for structured risk context values.
+class RiskTaxonomy:
+    """Active structured risk taxonomy for the MVP.
 
-    The MVP ships with sensible defaults, but deployments can override the
-    values via environment variables without changing code or database schema.
-    Risk context objects persist the selected keys as strings in metadata_json.
+    The taxonomy is configuration, not a persisted risk object. Concrete risk
+    contexts remain owned by the existing Decision/Risk workflow.
     """
 
-    probability_values: tuple[str, ...] = ("low", "medium", "high")
-    impact_values: tuple[str, ...] = ("low", "medium", "high")
-    severity_values: tuple[str, ...] = ("low", "medium", "high", "critical")
-    impact_area_values: tuple[str, ...] = (
-        "cost",
-        "time",
-        "quality",
-        "compliance",
-        "people",
-        "operations",
-        "reputation",
+    probability: tuple[str, ...]
+    impact: tuple[str, ...]
+    severity: tuple[str, ...]
+    impact_area: tuple[str, ...]
+
+
+def _configured_values(env_name: str, defaults: tuple[str, ...]) -> tuple[str, ...]:
+    raw_value = os.getenv(env_name)
+    if not raw_value:
+        return defaults
+    values = tuple(value.strip().lower() for value in raw_value.split(",") if value.strip())
+    return values or defaults
+
+
+def get_risk_taxonomy() -> RiskTaxonomy:
+    """Return the active risk taxonomy from configuration/environment.
+
+    Environment overrides are comma-separated and intentionally lightweight:
+    KAIRON_RISK_PROBABILITY, KAIRON_RISK_IMPACT, KAIRON_RISK_SEVERITY,
+    KAIRON_RISK_IMPACT_AREA.
+    """
+
+    return RiskTaxonomy(
+        probability=_configured_values("KAIRON_RISK_PROBABILITY", ("low", "medium", "high")),
+        impact=_configured_values("KAIRON_RISK_IMPACT", ("low", "medium", "high")),
+        severity=_configured_values("KAIRON_RISK_SEVERITY", ("low", "medium", "high", "critical")),
+        impact_area=_configured_values(
+            "KAIRON_RISK_IMPACT_AREA",
+            ("financial", "operational", "compliance", "technical", "organizational"),
+        ),
     )
 
-    @classmethod
-    def from_environment(cls) -> "ContextTaxonomy":
-        defaults = cls()
-        return cls(
-            probability_values=_csv_or_default("KAIRON_RISK_PROBABILITY_VALUES", defaults.probability_values),
-            impact_values=_csv_or_default("KAIRON_RISK_IMPACT_VALUES", defaults.impact_values),
-            severity_values=_csv_or_default("KAIRON_RISK_SEVERITY_VALUES", defaults.severity_values),
-            impact_area_values=_csv_or_default("KAIRON_RISK_IMPACT_AREA_VALUES", defaults.impact_area_values),
-        )
 
-    def as_dict(self) -> dict[str, tuple[str, ...]]:
-        return {
-            "probability": self.probability_values,
-            "impact": self.impact_values,
-            "severity": self.severity_values,
-            "impact_area": self.impact_area_values,
-        }
-
-
-DEFAULT_RISK_TAXONOMY = ContextTaxonomy()
-
-
-def get_risk_taxonomy() -> ContextTaxonomy:
-    return ContextTaxonomy.from_environment()
+def risk_taxonomy_view_model() -> dict:
+    taxonomy = get_risk_taxonomy()
+    return {
+        "probability": taxonomy.probability,
+        "impact": taxonomy.impact,
+        "severity": taxonomy.severity,
+        "impact_area": taxonomy.impact_area,
+    }

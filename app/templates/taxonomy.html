@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}KAIRON · Risk Taxonomy{% endblock %}
+{% block content %}
+<section>
+  <div class="eyebrow">Risk Taxonomy</div>
+  <div class="toolbar">
+    <div>
+      <h1>Aktive Risk Taxonomy</h1>
+      <p class="lead">Diese Werte strukturieren die Risikoerfassung im MVP. Die Taxonomy ist Konfiguration; konkrete Risk Contexts bleiben im Decision Workspace verankert.</p>
+    </div>
+    <div class="actions">
+      <a class="btn secondary" href="{{ url_for('ui.home') }}">Zur Decision Landscape</a>
+    </div>
+  </div>
+</section>
+
+<section class="grid four section taxonomy-grid">
+  <div class="card compact">
+    <div class="eyebrow">Probability</div>
+    <h2>Eintrittswahrscheinlichkeit</h2>
+    <div class="chip-list">{% for item in risk_taxonomy.probability %}<span class="chip">{{ item }}</span>{% endfor %}</div>
+  </div>
+  <div class="card compact">
+    <div class="eyebrow">Impact</div>
+    <h2>Auswirkung</h2>
+    <div class="chip-list">{% for item in risk_taxonomy.impact %}<span class="chip">{{ item }}</span>{% endfor %}</div>
+  </div>
+  <div class="card compact">
+    <div class="eyebrow">Severity / Risikozahl</div>
+    <h2>Schweregrad</h2>
+    <div class="chip-list">{% for item in risk_taxonomy.severity %}<span class="chip">{{ item }}</span>{% endfor %}</div>
+  </div>
+  <div class="card compact">
+    <div class="eyebrow">Impact Area</div>
+    <h2>Wirkungsbereich</h2>
+    <div class="chip-list">{% for item in risk_taxonomy.impact_area %}<span class="chip">{{ item }}</span>{% endfor %}</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="card notice">
+    <h2>Architekturhinweis</h2>
+    <p>Die Taxonomy ist bewusst leichtgewichtig gehalten. Sie wird aus Code- bzw. Environment-Konfiguration geladen und erzeugt keine neue Risk-Domain, keine zusätzliche Persistenz und keine konkurrierende Risk-Assessment-Struktur.</p>
+  </div>
+</section>
+{% endblock %}
