@@ -54,18 +54,30 @@ def _configured_values(env_name: str, defaults: tuple[str, ...]) -> tuple[str, .
 def get_risk_taxonomy() -> ContextTaxonomy:
     """Return the active risk taxonomy from configuration/environment.
 
-    Environment overrides are comma-separated and intentionally lightweight:
-    KAIRON_RISK_PROBABILITY, KAIRON_RISK_IMPACT, KAIRON_RISK_SEVERITY,
-    KAIRON_RISK_IMPACT_AREA.
+    Environment overrides are comma-separated and intentionally lightweight.
+    The ``*_VALUES`` names are the stable public contract. The shorter names
+    are kept as fallback aliases for backwards compatibility.
     """
 
     return ContextTaxonomy(
-        probability_values=_configured_values("KAIRON_RISK_PROBABILITY", ("low", "medium", "high")),
-        impact_values=_configured_values("KAIRON_RISK_IMPACT", ("low", "medium", "high")),
-        severity_values=_configured_values("KAIRON_RISK_SEVERITY", ("low", "medium", "high", "critical")),
+        probability_values=_configured_values(
+            "KAIRON_RISK_PROBABILITY_VALUES",
+            _configured_values("KAIRON_RISK_PROBABILITY", ("low", "medium", "high")),
+        ),
+        impact_values=_configured_values(
+            "KAIRON_RISK_IMPACT_VALUES",
+            _configured_values("KAIRON_RISK_IMPACT", ("low", "medium", "high")),
+        ),
+        severity_values=_configured_values(
+            "KAIRON_RISK_SEVERITY_VALUES",
+            _configured_values("KAIRON_RISK_SEVERITY", ("low", "medium", "high", "critical")),
+        ),
         impact_area_values=_configured_values(
-            "KAIRON_RISK_IMPACT_AREA",
-            ("financial", "operational", "compliance", "technical", "organizational"),
+            "KAIRON_RISK_IMPACT_AREA_VALUES",
+            _configured_values(
+                "KAIRON_RISK_IMPACT_AREA",
+                ("cost", "financial", "operations", "operational", "compliance", "customer", "technical", "technology", "organizational"),
+            ),
         ),
     )
 

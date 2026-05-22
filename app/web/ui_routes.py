@@ -455,6 +455,7 @@ def _db_status(session) -> str:
         return "error"
 
 
+@bp.get("/risk-taxonomy")
 @bp.get("/taxonomy")
 def taxonomy_overview():
     return render_template(
