@@ -51,14 +51,10 @@ class ContextTaxonomy:
     impact_values: tuple[str, ...] = ("low", "medium", "high")
     severity_values: tuple[str, ...] = ("low", "medium", "high", "critical")
     impact_area_values: tuple[str, ...] = (
-        "cost",
         "financial",
-        "operations",
         "operational",
         "compliance",
-        "customer",
         "technical",
-        "technology",
         "organizational",
     )
 
