@@ -72,17 +72,47 @@
   <div class="section-heading">
     <div>
       <div class="eyebrow">Decision Context</div>
-      <h2>Kontextmodule vorbereitet, bewusst schlank gehalten</h2>
-      <p class="muted">Diese Panels schaffen stabile Andockpunkte für Prozess-, Organisations-, Ressourcen-/FTE- und Risiko-Kontext. Im MVP bleiben sie strukturiert und erklärend, damit spätere Module ergänzt werden können, ohne den Workspace umzubauen.</p>
+      <h2>Entscheidungsrelevante Kontextobjekte</h2>
+      <p class="muted">Kontextobjekte halten Prozess-, Organisations-, Ressourcen-, Risiko-, Constraint-, Kosten-, Metrik-, Annahmen- und externe Einflussfaktoren direkt an der Decision fest. So bleibt die Decision das Zentrum; spätere Spezialmodule können sauber andocken.</p>
+    </div>
+    <div class="metric-pill">{{ context_summary.total }} Context Object(s)</div>
+  </div>
+
+  <div class="grid two context-workspace">
+    <div class="card compact secondary-panel">
+      <h3>Context Object erfassen</h3>
+      <p class="muted">MVP-schlank: Erfasse die Entscheidungsgrundlage strukturiert, ohne BPMN-, HR- oder Risikomanagement-Suite einzubauen.</p>
+      <form method="post" action="{{ url_for('ui.create_context_object', decision_id=decision.id) }}">
+        <label>Context Type</label>
+        <select name="context_type" required>
+          {% for value, label in context_summary.type_options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+        <label>Name</label><input name="name" required placeholder="z. B. Current invoice approval process">
+        <label>Beschreibung</label><textarea name="description" placeholder="Was ist für diese Entscheidung relevant?"></textarea>
+        <div class="form-row two">
+          <div><label>Source</label><input name="source" placeholder="Workshop, ERP report, policy"></div>
+          <div><label>Owner</label><input name="owner" placeholder="Finance Process Owner"></div>
+        </div>
+        <label>Scenario optional</label>
+        <select name="scenario_id">
+          <option value="">Decision-level context</option>
+          {% for scenario in decision.scenarios %}<option value="{{ scenario.id }}">{{ scenario.name }}</option>{% endfor %}
+        </select>
+        <label>Confidence</label>
+        <select name="confidence">
+          {% for confidence_value in context_summary.confidence_options %}<option value="{{ confidence_value }}" {% if confidence_value == 'medium' %}selected{% endif %}>{{ confidence_value|title }}</option>{% endfor %}
+        </select>
+        <button class="btn secondary" type="submit">Context Object speichern</button>
+      </form>
+    </div>
+
+    <div class="context-panel-grid">
+      {% for panel in context_panels %}
+        {% include 'components/context_panel.html' %}
+      {% endfor %}
     </div>
   </div>
-  <div class="grid two">
-    {% for panel in context_panels %}
-      {% include 'components/context_panel.html' %}
-    {% endfor %}
-  </div>
 </section>
-
 <section id="variants" class="grid two section">
   <div class="card">
     <h2>Variante anlegen</h2>
@@ -134,52 +164,58 @@
   <div class="card">
     <div class="section-heading compact-heading">
       <div>
-        <h2>Risk Assessment erfassen</h2>
-        <p class="muted">Die Auswahlwerte stammen aus der aktiven Risk Taxonomy. Die Taxonomy ist Konfiguration; konkrete Risiken bleiben Teil des Decision Workspace.</p>
+        <div class="eyebrow">Assessment</div>
+        <h2>Structured Risk Context</h2>
+        <p class="muted">Risiken werden als Decision Context Objects gespeichert. Die Skalen kommen aus der konfigurierbaren Risk Taxonomy, damit Organisationen später eigene Bewertungslogiken verwenden können.</p>
+        <p><a class="btn small secondary" href="{{ url_for('ui.risk_taxonomy') }}">Risk Taxonomy anzeigen</a></p>
       </div>
-      <a class="btn small secondary" href="{{ url_for('ui.taxonomy_overview') }}">Risk Taxonomy anzeigen</a>
     </div>
     <form method="post" action="{{ url_for('ui.create_risk', decision_id=decision.id) }}">
-      <label>Risiko</label><textarea name="summary" required placeholder="z. B. Akzeptanzrisiko in Fachbereichen"></textarea>
+      <label>Risiko</label><input name="name" required placeholder="z. B. Supplier data quality risk">
+      <label>Beschreibung</label><textarea name="description" placeholder="Welche Unsicherheit oder Nebenwirkung beeinflusst die Entscheidung?"></textarea>
       <div class="form-row two">
-        <div>
-          <label>Probability</label>
-          <select name="probability" disabled>{% for value in risk_taxonomy.probability %}<option value="{{ value }}">{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select>
-          <p class="field-hint">Vorbereitend sichtbar; noch nicht persistiert.</p>
-        </div>
-        <div>
-          <label>Impact</label>
-          <select name="impact" disabled>{% for value in risk_taxonomy.impact %}<option value="{{ value }}">{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select>
-          <p class="field-hint">Vorbereitend sichtbar; noch nicht persistiert.</p>
-        </div>
+        <div><label>Category</label><input name="category" placeholder="implementation" value="implementation"></div>
+        <div><label>Impact Area</label><select name="impact_area">{% for value in context_summary.risk_taxonomy.impact_area %}<option value="{{ value }}">{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select></div>
       </div>
+      <div class="form-row three">
+        <div><label>Probability</label><select name="probability">{% for value in context_summary.risk_taxonomy.probability %}<option value="{{ value }}" {% if value == 'medium' %}selected{% endif %}>{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select></div>
+        <div><label>Impact</label><select name="impact">{% for value in context_summary.risk_taxonomy.impact %}<option value="{{ value }}" {% if value == 'medium' %}selected{% endif %}>{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select></div>
+        <div><label>Severity</label><select name="severity">{% for value in context_summary.risk_taxonomy.severity %}<option value="{{ value }}" {% if value == 'medium' %}selected{% endif %}>{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select></div>
+      </div>
+      <label>Mitigation</label><textarea name="mitigation" placeholder="Pilot, Governance Gate, Monitoring, fallback process"></textarea>
       <div class="form-row two">
-        <div>
-          <label>Severity / Risikozahl</label>
-          <select name="severity">{% for value in risk_taxonomy.severity %}<option value="{{ value }}" {% if value == 'medium' %}selected{% endif %}>{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select>
-        </div>
-        <div>
-          <label>Impact Area</label>
-          <select name="impact_area" disabled>{% for value in risk_taxonomy.impact_area %}<option value="{{ value }}">{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select>
-          <p class="field-hint">Vorbereitend sichtbar; noch nicht persistiert.</p>
-        </div>
+        <div><label>Risk Owner</label><input name="risk_owner" placeholder="Finance Process Owner"></div>
+        <div><label>Confidence</label><select name="confidence">{% for confidence_value in context_summary.confidence_options %}<option value="{{ confidence_value }}" {% if confidence_value == 'medium' %}selected{% endif %}>{{ confidence_value|title }}</option>{% endfor %}</select></div>
       </div>
-      <label>Mitigation</label><textarea name="mitigation" placeholder="Pilot, Schulung, Governance Gate"></textarea>
-      <label>Created by</label><input name="created_by" value="system">
-      <button class="btn" type="submit">Risk speichern</button>
+      <label class="checkbox-line"><input type="checkbox" name="review_required"> Review required</label>
+      <button class="btn" type="submit">Risk Context speichern</button>
     </form>
   </div>
   <div class="card">
-    <h2>Impact & Risiken</h2>
-    {% if has_impacts or decision.risk_assessments %}
+    <h2>Structured Risk Context Übersicht</h2>
+    {% if risk_contexts or has_impacts %}
       <div class="grid">
       {% for row in comparison_rows %}
         {% if row.impact %}<div class="card compact"><strong>{{ row.variant.name }} · {{ row.scenario.name }}</strong><p>Net Impact: {{ '%.2f'|format(row.impact.net_impact|float) }}</p>{% set confidence = row.confidence %}{% set score = row.confidence_score %}{% include 'components/confidence_indicator.html' %}</div>{% endif %}
       {% endfor %}
-      {% for risk in decision.risk_assessments %}<div class="card compact">{% include 'components/risk_indicator.html' %}<p>{{ risk.summary }}</p><p class="muted">{{ risk.mitigation or 'No mitigation captured yet.' }}</p></div>{% endfor %}
+      {% for risk in risk_contexts %}
+        <div class="card compact risk-context-card">
+          {% include 'components/risk_indicator.html' %}
+          <p><strong>{{ risk.name }}</strong></p>
+          <p class="muted">{{ risk.description or 'No description captured yet.' }}</p>
+          <div class="meta-grid compact-meta">
+            <span>Probability: <strong>{{ risk.probability|replace('_', ' ')|title }}</strong></span>
+            <span>Impact: <strong>{{ risk.impact|replace('_', ' ')|title }}</strong></span>
+            <span>Area: <strong>{{ risk.impact_area|replace('_', ' ')|title }}</strong></span>
+            <span>Owner: <strong>{{ risk.risk_owner or 'not assigned' }}</strong></span>
+          </div>
+          {% if risk.mitigation %}<p class="muted">Mitigation: {{ risk.mitigation }}</p>{% endif %}
+          {% if risk.review_required %}<span class="badge warning">Review required</span>{% endif %}
+        </div>
+      {% endfor %}
       </div>
     {% else %}
-      {% set title = 'Noch keine Impact- oder Risikoangaben' %}{% set text = 'Starte eine Simulation und erfasse Risiken, damit Entscheidungsgrundlagen sichtbar werden.' %}{% include 'components/empty_state.html' %}
+      {% set title = 'Noch keine Risiken bewertet' %}{% set text = 'Erfasse Risiken, Unsicherheiten oder Nebenwirkungen als strukturierten Risk Context, damit die Entscheidung governancefähig vergleichbar und später simulationsfähig wird.' %}{% include 'components/empty_state.html' %}
     {% endif %}
   </div>
 </section>

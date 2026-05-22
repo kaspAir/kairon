@@ -37,12 +37,13 @@ def create_context_object(decision_id):
 @bp.get("/decisions/<decision_id>/risks")
 def list_risk_contexts(decision_id):
     with session_scope() as session:
-        risks = DecisionContextService(session).list_risks_for_decision(decision_id)
+        service = DecisionContextService(session)
+        risks = service.list_risks_for_decision(decision_id)
         taxonomy = get_risk_taxonomy().as_dict()
         return jsonify({
             "items": RiskContextResponseSchema(many=True).dump(risks),
-            "summary": DecisionContextService(session).summarize_risks_for_decision(decision_id),
-            "taxonomy": taxonomy,
+            "summary": service.summarize_risks_for_decision(decision_id),
+            "taxonomy": {key: list(values) for key, values in taxonomy.items()},
         })
 
 

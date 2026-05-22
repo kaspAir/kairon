@@ -1,3 +1,5 @@
+import json
+
 from marshmallow import Schema, fields, validate
 
 from app.domains.context.types import CONFIDENCE_VALUES, CONTEXT_TYPES
@@ -89,7 +91,14 @@ class RiskContextResponseSchema(Schema):
     updated_at = fields.DateTime(required=True)
 
     def _metadata(self, obj):
-        return obj.metadata_json or {}
+        metadata = getattr(obj, "metadata_json", None) or {}
+        if isinstance(metadata, str):
+            try:
+                decoded = json.loads(metadata)
+                return decoded if isinstance(decoded, dict) else {}
+            except json.JSONDecodeError:
+                return {}
+        return metadata if isinstance(metadata, dict) else {}
 
     def get_summary(self, obj):
         return obj.name
