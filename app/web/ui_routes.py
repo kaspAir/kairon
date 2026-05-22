@@ -413,7 +413,6 @@ def _workspace_view_model(decision: Decision) -> dict:
         "decision_card": _decision_card_view_model(decision),
         "context_panels": _context_panels(decision),
         "context_summary": _context_summary(decision),
-        "risk_taxonomy": get_risk_taxonomy().as_dict(),
         "observation_context": _observation_context(decision),
         "comparison_rows": rows,
         "scenario_rows": _scenario_rows(decision),
@@ -494,31 +493,6 @@ def analytics_overview():
     return _render_overview("analytics")
 
 
-
-
-@bp.get("/risk-taxonomy")
-def risk_taxonomy():
-    taxonomy = get_risk_taxonomy().as_dict()
-    env_vars = {
-        "probability": "KAIRON_RISK_PROBABILITY_VALUES",
-        "impact": "KAIRON_RISK_IMPACT_VALUES",
-        "severity": "KAIRON_RISK_SEVERITY_VALUES",
-        "impact_area": "KAIRON_RISK_IMPACT_AREA_VALUES",
-    }
-    return render_template(
-        "risk_taxonomy.html",
-        active_nav="governance",
-        message=_message(),
-        taxonomy=taxonomy,
-        env_vars=env_vars,
-    )
-
-
-@bp.get("/taxonomy")
-def taxonomy_alias():
-    return risk_taxonomy()
-
-
 @bp.get("/<section>")
 def overview(section):
     return _render_overview(section)
@@ -531,6 +505,24 @@ def _db_status(session) -> str:
     except Exception:
         current_app.logger.exception("database status check failed")
         return "error"
+
+
+
+
+@bp.get("/risk-taxonomy")
+def risk_taxonomy():
+    risk_taxonomy = get_risk_taxonomy().as_dict()
+    return render_template(
+        "risk_taxonomy.html",
+        active_nav="governance",
+        message=_message(),
+        risk_taxonomy=risk_taxonomy,
+    )
+
+
+@bp.get("/taxonomy")
+def taxonomy_alias():
+    return risk_taxonomy()
 
 
 @bp.get("/system-status")

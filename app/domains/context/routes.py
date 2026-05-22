@@ -43,7 +43,7 @@ def list_risk_contexts(decision_id):
         return jsonify({
             "items": RiskContextResponseSchema(many=True).dump(risks),
             "summary": service.summarize_risks_for_decision(decision_id),
-            "taxonomy": {key: list(values) for key, values in taxonomy.items()},
+            "taxonomy": taxonomy,
         })
 
 

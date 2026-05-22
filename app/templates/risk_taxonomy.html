@@ -18,23 +18,23 @@
         <tbody>
           <tr>
             <td>Probability Values</td>
-            <td><code>KAIRON_RISK_PROBABILITY_VALUES</code></td>
-            <td>{% for value in taxonomy.probability %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
+            <td><code>{{ risk_taxonomy.env_vars.probability_values }}</code></td>
+            <td>{% for value in risk_taxonomy.probability_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
           </tr>
           <tr>
             <td>Impact Values</td>
-            <td><code>KAIRON_RISK_IMPACT_VALUES</code></td>
-            <td>{% for value in taxonomy.impact %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
+            <td><code>{{ risk_taxonomy.env_vars.impact_values }}</code></td>
+            <td>{% for value in risk_taxonomy.impact_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
           </tr>
           <tr>
             <td>Severity Values / Risikozahl</td>
-            <td><code>KAIRON_RISK_SEVERITY_VALUES</code></td>
-            <td>{% for value in taxonomy.severity %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
+            <td><code>{{ risk_taxonomy.env_vars.severity_values }}</code></td>
+            <td>{% for value in risk_taxonomy.severity_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
           </tr>
           <tr>
             <td>Impact Area Values</td>
-            <td><code>KAIRON_RISK_IMPACT_AREA_VALUES</code></td>
-            <td>{% for value in taxonomy.impact_area %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
+            <td><code>{{ risk_taxonomy.env_vars.impact_area_values }}</code></td>
+            <td>{% for value in risk_taxonomy.impact_area_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
           </tr>
         </tbody>
       </table>
