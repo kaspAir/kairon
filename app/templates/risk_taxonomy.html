@@ -18,26 +18,26 @@
         <tbody>
           <tr>
             <td>Probability Values</td>
-            <td><code>{{ taxonomy.env_vars.probability_values }}</code></td>
+            <td><code>{{ risk_taxonomy.env_vars.probability_values }}</code></td>
             <td>
-              {% for value in taxonomy.probability_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}
-              <div class="muted"><code>{{ taxonomy.probability_values|join(',') }}</code></div>
+              {% for value in risk_taxonomy.probability_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}
+              <div class="muted"><code>{{ risk_taxonomy.probability_values|join(',') }}</code></div>
             </td>
           </tr>
           <tr>
             <td>Impact Values</td>
-            <td><code>{{ taxonomy.env_vars.impact_values }}</code></td>
-            <td>{% for value in taxonomy.impact_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
+            <td><code>{{ risk_taxonomy.env_vars.impact_values }}</code></td>
+            <td>{% for value in risk_taxonomy.impact_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
           </tr>
           <tr>
             <td>Severity / Risikozahl</td>
-            <td><code>{{ taxonomy.env_vars.severity_values }}</code></td>
-            <td>{% for value in taxonomy.severity_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
+            <td><code>{{ risk_taxonomy.env_vars.severity_values }}</code></td>
+            <td>{% for value in risk_taxonomy.severity_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
           </tr>
           <tr>
             <td>Impact Area Values</td>
-            <td><code>{{ taxonomy.env_vars.impact_area_values }}</code></td>
-            <td>{% for value in taxonomy.impact_area_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
+            <td><code>{{ risk_taxonomy.env_vars.impact_area_values }}</code></td>
+            <td>{% for value in risk_taxonomy.impact_area_values %}<span class="badge">{{ value|replace('_', ' ')|title }}</span> {% endfor %}</td>
           </tr>
         </tbody>
       </table>
