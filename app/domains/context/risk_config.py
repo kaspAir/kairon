@@ -53,6 +53,7 @@ class ContextTaxonomy:
     impact_area_values: tuple[str, ...] = (
         "financial",
         "operational",
+        "operations",
         "compliance",
         "technical",
         "organizational",
