@@ -10,6 +10,7 @@ from flask import Blueprint, current_app, redirect, render_template, request, ur
 
 from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
+from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
 from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFIDENCE_VALUES
@@ -120,6 +121,26 @@ def _dominant_risk(decision: Decision) -> RiskAssessment | None:
 
 def _risk_contexts(decision: Decision) -> list:
     return [obj for obj in decision.context_objects if obj.context_type == "risk"]
+
+
+def _process_contexts(decision: Decision) -> list:
+    return [obj for obj in decision.context_objects if obj.context_type == "process"]
+
+
+def _process_context_view_model(obj) -> dict:
+    metadata = obj.metadata_json or {}
+    return {
+        "id": obj.id,
+        "name": obj.name,
+        "description": obj.description,
+        "source": obj.source,
+        "owner": obj.owner,
+        "confidence": obj.confidence,
+        "process_level": metadata.get("process_level"),
+        "process_level_label": metadata.get("process_level_label"),
+        "scope": metadata.get("scope"),
+        "created_at": obj.created_at,
+    }
 
 
 def _risk_context_view_model(obj) -> dict:
@@ -386,6 +407,7 @@ def _context_summary(decision: Decision) -> dict:
         "type_options": [(context_type, CONTEXT_TYPE_LABELS[context_type]) for context_type in CONTEXT_TYPES],
         "confidence_options": CONFIDENCE_VALUES,
         "risk_taxonomy": get_risk_taxonomy().as_dict(),
+        "process_taxonomy": get_process_taxonomy().as_dict(),
     }
 
 def _observation_records(decision: Decision) -> list[dict]:
@@ -419,6 +441,8 @@ def _workspace_view_model(decision: Decision) -> dict:
         "latest_record": latest_record,
         "dominant_risk": _dominant_risk_context(decision) or _dominant_risk(decision),
         "risk_contexts": [_risk_context_view_model(obj) for obj in _risk_contexts(decision)],
+        "process_contexts": [_process_context_view_model(obj) for obj in _process_contexts(decision)],
+        "process_taxonomy": get_process_taxonomy().as_dict(),
         "governance_status": _governance_state(decision),
         "status_sequence": STATUS_SEQUENCE,
         "status_labels": DECISION_STATUS_LABELS,
@@ -525,6 +549,22 @@ def taxonomy_alias():
     return risk_taxonomy()
 
 
+@bp.get("/process-taxonomy")
+def process_taxonomy():
+    process_taxonomy = get_process_taxonomy().as_dict()
+    return render_template(
+        "process_taxonomy.html",
+        active_nav="governance",
+        message=_message(),
+        process_taxonomy=process_taxonomy,
+    )
+
+
+@bp.get("/processes/taxonomy")
+def process_taxonomy_alias():
+    return process_taxonomy()
+
+
 @bp.get("/system-status")
 def system_status():
     with session_scope() as session:
@@ -623,6 +663,35 @@ def create_context_object(decision_id):
         return redirect(url_for("ui.decision_detail", decision_id=decision_id, message="Context object saved", level="success") + "#context")
     except ValueError as exc:
         return redirect(url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error") + "#context")
+
+
+@bp.post("/decisions/<decision_id>/process-contexts")
+def create_process_context(decision_id):
+    try:
+        with session_scope() as session:
+            DecisionContextService(session).create_process_context(
+                decision_id=decision_id,
+                name=request.form.get("name", ""),
+                description=request.form.get("description") or None,
+                process_level=request.form.get("process_level") or None,
+                owner=request.form.get("owner") or None,
+                scope=request.form.get("scope") or None,
+                source=request.form.get("source") or None,
+                confidence=request.form.get("confidence", "medium"),
+                created_by=_created_by(),
+            )
+        return redirect(
+            url_for(
+                "ui.decision_detail",
+                decision_id=decision_id,
+                message="Process context saved",
+                level="success",
+            ) + "#process-context"
+        )
+    except ValueError as exc:
+        return redirect(
+            url_for("ui.decision_detail", decision_id=decision_id, message=str(exc), level="error") + "#process-context"
+        )
 
 
 @bp.post("/decisions/<decision_id>/variants")

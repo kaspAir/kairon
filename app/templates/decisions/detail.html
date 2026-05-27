@@ -21,6 +21,7 @@
   <a class="tab" href="#lifecycle">Lifecycle</a>
   <a class="tab" href="#variants">Variants</a>
   <a class="tab" href="#context">Context</a>
+  <a class="tab" href="#process-context">Process Context</a>
   <a class="tab" href="#scenarios">Scenarios</a>
   <a class="tab" href="#simulations">Simulations</a>
   <a class="tab" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">Compare</a>
@@ -113,6 +114,85 @@
     </div>
   </div>
 </section>
+
+<section id="process-context" class="grid two section">
+  <div class="card">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">Decision Support Modeling</div>
+        <h2>Process Context</h2>
+        <p class="muted">Prozesse sind Entscheidungsgrundlagen, kein BPMN-Modul. KAIRON speichert Prozessbezüge als Decision Context Objects, damit Entscheidungen nachvollziehbar mit Prozessräumen, Verantwortlichkeiten und Scopes verbunden bleiben.</p>
+        <p><a class="btn small secondary" href="{{ url_for('ui.process_taxonomy') }}">Process Taxonomy anzeigen</a></p>
+      </div>
+    </div>
+    <form method="post" action="{{ url_for('ui.create_process_context', decision_id=decision.id) }}">
+      <label>Name</label>
+      <input name="name" required placeholder="z. B. Invoice-to-Pay">
+
+      <label>Beschreibung</label>
+      <textarea name="description" placeholder="Welcher Prozessbezug ist für diese Entscheidung relevant?"></textarea>
+
+      <div class="form-row two">
+        <div>
+          <label>Process Level</label>
+          <select name="process_level">
+            {% for option in process_taxonomy.level_options %}
+              <option value="{{ option.value }}" {% if option.value == 'process' %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label>Owner</label>
+          <input name="owner" placeholder="Process Owner">
+        </div>
+      </div>
+
+      <label>Scope</label>
+      <input name="scope" placeholder="Finance → Core Processes → Invoice-to-Pay">
+
+      <div class="form-row two">
+        <div>
+          <label>Source</label>
+          <input name="source" placeholder="Workshop, process map, policy">
+        </div>
+        <div>
+          <label>Confidence</label>
+          <select name="confidence">
+            {% for confidence_value in context_summary.confidence_options %}
+              <option value="{{ confidence_value }}" {% if confidence_value == 'medium' %}selected{% endif %}>{{ confidence_value|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <button class="btn" type="submit">Process Context speichern</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Process Context Übersicht</h2>
+    {% if process_contexts %}
+      <div class="grid">
+      {% for process_context in process_contexts %}
+        <div class="card compact">
+          <p><strong>{{ process_context.name }}</strong></p>
+          <p class="muted">{{ process_context.description or 'No process description captured yet.' }}</p>
+          <div class="meta-grid compact-meta">
+            <span>Level: <strong>{{ process_context.process_level_label }}</strong></span>
+            <span>Owner: <strong>{{ process_context.owner or 'not assigned' }}</strong></span>
+            <span>Scope: <strong>{{ process_context.scope or 'decision-level' }}</strong></span>
+            <span>Confidence: <strong>{{ process_context.confidence|title }}</strong></span>
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      {% set title = 'Noch kein Process Context erfasst' %}
+      {% set text = 'Erfasse Prozessräume, Prozesshierarchien oder Prozessbezüge als schlanke Entscheidungsgrundlage. Ein BPMN-Editor ist bewusst nicht Teil dieses MVP-Schritts.' %}
+      {% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
 <section id="variants" class="grid two section">
   <div class="card">
     <h2>Variante anlegen</h2>

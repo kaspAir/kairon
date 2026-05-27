@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any
 
 from app.domains.context.models import DecisionContextObject
+from app.domains.context.process_config import ProcessTaxonomy, get_process_taxonomy
 from app.domains.context.risk_config import ContextTaxonomy, get_risk_taxonomy
 from app.domains.context.types import CONFIDENCE_VALUES, CONTEXT_TYPES
 from app.domains.decision.models import Decision
@@ -68,6 +69,59 @@ class DecisionContextService:
         self.session.add(context_object)
         self.session.flush()
         return context_object
+
+
+    def create_process_context(
+        self,
+        *,
+        decision_id: str,
+        name: str,
+        description: str | None = None,
+        process_level: str | None = None,
+        owner: str | None = None,
+        scope: str | None = None,
+        source: str | None = None,
+        confidence: str = "medium",
+        scenario_id: str | None = None,
+        created_by: str = "system",
+        taxonomy: ProcessTaxonomy | None = None,
+    ) -> DecisionContextObject:
+        taxonomy = taxonomy or get_process_taxonomy()
+        process_name = (name or "").strip()
+        if not process_name:
+            raise ValueError("Process context name is required")
+        level = self._validate_taxonomy_value(
+            "process_level",
+            process_level or taxonomy.levels[3],
+            taxonomy.levels,
+        )
+        metadata = {
+            "process_level": level,
+            "process_level_label": taxonomy.label_for(level),
+            "scope": scope,
+            "created_by": created_by or "system",
+        }
+        return self.create_context_object(
+            decision_id=decision_id,
+            scenario_id=scenario_id,
+            context_type="process",
+            name=process_name,
+            description=description,
+            source=source,
+            owner=owner,
+            confidence=confidence,
+            metadata_json=metadata,
+        )
+
+    def list_process_contexts_for_decision(self, decision_id: str) -> list[DecisionContextObject]:
+        self._require_decision(decision_id)
+        return (
+            self.session.query(DecisionContextObject)
+            .filter(DecisionContextObject.decision_id == decision_id)
+            .filter(DecisionContextObject.context_type == "process")
+            .order_by(DecisionContextObject.created_at.desc())
+            .all()
+        )
 
 
     def create_risk_context(

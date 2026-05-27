@@ -4,9 +4,12 @@ from app.domains.context.schemas import (
     DecisionContextObjectCreateSchema,
     DecisionContextObjectResponseSchema,
     DecisionContextObjectUpdateSchema,
+    ProcessContextCreateSchema,
+    ProcessContextResponseSchema,
     RiskContextCreateSchema,
     RiskContextResponseSchema,
 )
+from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
 from app.shared.database import session_scope
@@ -32,6 +35,28 @@ def create_context_object(decision_id):
     with session_scope() as session:
         context_object = DecisionContextService(session).create_context_object(decision_id=decision_id, **data)
         return jsonify(DecisionContextObjectResponseSchema().dump(context_object)), 201
+
+
+@bp.get("/decisions/<decision_id>/process-contexts")
+def list_process_contexts(decision_id):
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        contexts = service.list_process_contexts_for_decision(decision_id)
+        return jsonify({
+            "items": ProcessContextResponseSchema(many=True).dump(contexts),
+            "taxonomy": get_process_taxonomy().as_dict(),
+        })
+
+
+@bp.post("/decisions/<decision_id>/process-contexts")
+def create_process_context(decision_id):
+    data = load_json(ProcessContextCreateSchema(), payload())
+    with session_scope() as session:
+        process_context = DecisionContextService(session).create_process_context(
+            decision_id=decision_id,
+            **data,
+        )
+        return jsonify(ProcessContextResponseSchema().dump(process_context)), 201
 
 
 @bp.get("/decisions/<decision_id>/risks")

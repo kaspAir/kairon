@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Process Taxonomy{% endblock %}
+{% block content %}
+<section class="hero compact-hero">
+  <div>
+    <p class="eyebrow">KAIRON Configuration</p>
+    <h1>Process Taxonomy</h1>
+    <p class="muted">Diese Seite zeigt die aktuell aktive Process Taxonomy. Prozesse sind Entscheidungsgrundlagen und werden im MVP als Process Context an einer Decision gespeichert.</p>
+  </div>
+</section>
+
+<section class="grid two section">
+  <div class="card">
+    <h2>Aktive Process Taxonomy</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Level</th><th>Label</th></tr>
+        </thead>
+        <tbody>
+          {% for option in process_taxonomy.level_options %}
+          <tr>
+            <td><code>{{ option.value }}</code></td>
+            <td>{{ option.label }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">
+      <code>{{ process_taxonomy.levels|join(',') }}</code>
+    </p>
+    <p class="muted">
+      <code>{{ process_taxonomy.labels|join(',') }}</code>
+    </p>
+    <p class="muted">
+      Environment:
+      <code>{{ process_taxonomy.env_vars.levels }}</code>,
+      <code>{{ process_taxonomy.env_vars.labels }}</code>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Architekturhinweis</h2>
+    <p>Die Process Taxonomy ist Konfiguration. Konkrete Prozessbezüge bleiben Decision Context Objects mit <code>context_type="process"</code>.</p>
+    <p class="muted">Damit bleibt DecisionContextObject die Single Source of Truth für Decision Contexts. Diese Seite startet keinen BPMN-Editor und baut keine schwere Process-Domain.</p>
+    <p><a class="btn secondary" href="{{ url_for('ui.home') }}">Zurück zum Workspace</a></p>
+  </div>
+</section>
+{% endblock %}

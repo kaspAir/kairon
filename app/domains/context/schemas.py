@@ -69,6 +69,43 @@ class RiskContextCreateSchema(Schema):
     created_by = fields.String(load_default="system")
 
 
+class ProcessContextCreateSchema(Schema):
+    name = fields.String(required=True, validate=non_empty)
+    description = fields.String(load_default=None, allow_none=True)
+    process_level = fields.String(load_default="process")
+    owner = fields.String(load_default=None, allow_none=True)
+    scope = fields.String(load_default=None, allow_none=True)
+    source = fields.String(load_default=None, allow_none=True)
+    confidence = fields.String(load_default="medium", validate=validate.OneOf(CONFIDENCE_VALUES))
+    scenario_id = fields.String(load_default=None, allow_none=True)
+    created_by = fields.String(load_default="system")
+
+
+class ProcessContextResponseSchema(DecisionContextObjectResponseSchema):
+    process_level = fields.Method("get_process_level")
+    scope = fields.Method("get_scope")
+    created_by = fields.Method("get_created_by")
+
+    def _metadata(self, obj):
+        metadata = getattr(obj, "metadata_json", None) or {}
+        if isinstance(metadata, str):
+            try:
+                decoded = json.loads(metadata)
+                return decoded if isinstance(decoded, dict) else {}
+            except json.JSONDecodeError:
+                return {}
+        return metadata if isinstance(metadata, dict) else {}
+
+    def get_process_level(self, obj):
+        return self._metadata(obj).get("process_level")
+
+    def get_scope(self, obj):
+        return self._metadata(obj).get("scope")
+
+    def get_created_by(self, obj):
+        return self._metadata(obj).get("created_by", "system")
+
+
 class RiskContextResponseSchema(Schema):
     id = fields.String(required=True)
     decision_id = fields.String(required=True)
