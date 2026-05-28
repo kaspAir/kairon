@@ -27,13 +27,13 @@
       <div class="card section">
         <div class="section-heading compact-heading">
           <div>
-            <h2>{{ group.label }}</h2>
-            <p class="muted">{{ group.items|length }} Process Context(s)</p>
+            <h2>{{ group["label"] }}</h2>
+            <p class="muted">{{ group["items"]|length }} Process Context(s)</p>
           </div>
         </div>
 
         <div class="grid two">
-          {% for item in group.items %}
+          {% for item in group["items"] %}
             <div class="card compact">
               <p><strong>{{ item.name }}</strong></p>
               <p class="muted">{{ item.description or 'No process description captured yet.' }}</p>
