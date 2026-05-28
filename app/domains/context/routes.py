@@ -15,6 +15,8 @@ from app.domains.context.service import DecisionContextService
 from app.shared.database import session_scope
 from app.shared.schemas import load_json
 
+from app.domains.context.link_config import context_link_config_view_model
+
 bp = Blueprint("context", __name__)
 
 
@@ -93,3 +95,18 @@ def delete_context_object(context_object_id):
     with session_scope() as session:
         DecisionContextService(session).delete_context_object(context_object_id)
         return "", 204
+    
+@bp.get("/process-landscape")
+def process_landscape():
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        items = service.process_landscape_items()
+        grouped: dict[str, list[dict]] = {}
+        for item in items:
+            grouped.setdefault(item.get("process_level") or "unknown", []).append(item)
+        return jsonify({
+            "items": items,
+            "grouped": grouped,
+            "context_link_config": context_link_config_view_model(),
+        })
+

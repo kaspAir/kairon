@@ -27,6 +27,8 @@ from app.domains.simulation.service import SimulationService
 from app.shared.database import session_scope
 from app.shared.errors import NotFoundError
 
+from app.domains.context.link_config import context_link_config_view_model
+
 bp = Blueprint("ui", __name__, url_prefix="/ui")
 
 STATUS_SEQUENCE = tuple(status.value for status in DECISION_STATUS_DEFINITIONS)
@@ -162,6 +164,32 @@ def _risk_context_view_model(obj) -> dict:
         "review_required": bool(metadata.get("review_required")),
         "created_at": obj.created_at,
     }
+
+def _group_process_landscape_items(items: list[dict], process_taxonomy: dict) -> list[dict]:
+    labels = {
+        option["value"]: option["label"]
+        for option in process_taxonomy.get("level_options", [])
+    }
+    grouped: dict[str, list[dict]] = {}
+    for item in items:
+        grouped.setdefault(item.get("process_level") or "unknown", []).append(item)
+
+    ordered_groups = []
+    for level in process_taxonomy.get("levels", []):
+        if level in grouped:
+            ordered_groups.append({
+                "key": level,
+                "label": labels.get(level, level.replace("_", " ").title()),
+                "items": grouped[level],
+            })
+    for level, values in grouped.items():
+        if level not in process_taxonomy.get("levels", []):
+            ordered_groups.append({
+                "key": level,
+                "label": labels.get(level, level.replace("_", " ").title()),
+                "items": values,
+            })
+    return ordered_groups
 
 
 def _dominant_risk_context(decision: Decision) -> dict | None:
@@ -808,3 +836,20 @@ def create_record(decision_id):
     with session_scope() as session:
         GovernanceService(session).create_decision_record(decision_id, created_by=_created_by())
     return redirect(url_for("ui.decision_record", decision_id=decision_id, message="Decision record generated", level="success"))
+
+@bp.get("/process-landscape")
+def process_landscape():
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        process_taxonomy = get_process_taxonomy().as_dict()
+        items = service.process_landscape_items()
+        return render_template(
+            "process_landscape.html",
+            active_nav="processes",
+            message=_message(),
+            process_taxonomy=process_taxonomy,
+            process_landscape_items=items,
+            grouped_process_contexts=_group_process_landscape_items(items, process_taxonomy),
+            context_link_config=context_link_config_view_model(),
+        )
+

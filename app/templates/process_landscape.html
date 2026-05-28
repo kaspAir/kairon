@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Process Landscape{% endblock %}
+{% block content %}
+<section class="hero compact-hero">
+  <div>
+    <p class="eyebrow">Decision Support Modeling</p>
+    <h1>Process Landscape</h1>
+    <p class="muted">Diese Prozesslandkarte basiert auf Process Contexts. Sie ist bewusst keine BPMN-Engine, kein Flow-Canvas und kein Prozesssimulator.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">Process Context Overview</div>
+      <h2>Prozesskontexte nach Process Level</h2>
+      <p class="muted">Process Contexts bleiben Decision Context Objects. Die Landscape ist eine Sicht auf vorhandene Entscheidungsgrundlagen.</p>
+    </div>
+    <div class="actions">
+      <a class="btn secondary" href="{{ url_for('ui.process_taxonomy') }}">Process Taxonomy anzeigen</a>
+      <a class="btn ghost" href="{{ url_for('ui.home') }}">Zurück zum Workspace</a>
+    </div>
+  </div>
+
+  {% if grouped_process_contexts %}
+    {% for group in grouped_process_contexts %}
+      <div class="card section">
+        <div class="section-heading compact-heading">
+          <div>
+            <h2>{{ group.label }}</h2>
+            <p class="muted">{{ group.items|length }} Process Context(s)</p>
+          </div>
+        </div>
+
+        <div class="grid two">
+          {% for item in group.items %}
+            <div class="card compact">
+              <p><strong>{{ item.name }}</strong></p>
+              <p class="muted">{{ item.description or 'No process description captured yet.' }}</p>
+
+              <div class="meta-grid compact-meta">
+                <span>Process Level: <strong>{{ item.process_level_label }}</strong></span>
+                <span>Owner: <strong>{{ item.owner or 'not assigned' }}</strong></span>
+                <span>Scope: <strong>{{ item.scope or 'decision-level' }}</strong></span>
+                <span>Source: <strong>{{ item.source or 'not captured' }}</strong></span>
+                <span>Confidence: <strong>{{ item.confidence|title }}</strong></span>
+                <span>Connected Context Objects: <strong>{{ item.related_context_count }}</strong></span>
+              </div>
+
+              {% if item.decision_id %}
+                <p>
+                  Decision:
+                  <a href="{{ url_for('ui.decision_detail', decision_id=item.decision_id) }}">
+                    {{ item.decision_title or item.decision_id }}
+                  </a>
+                </p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="card">
+      {% set title = 'Noch keine Process Contexts vorhanden' %}
+      {% set text = 'Erfasse zuerst Process Contexts in einer Decision. Danach werden sie hier als schlanke Process Landscape sichtbar.' %}
+      {% include 'components/empty_state.html' %}
+    </div>
+  {% endif %}
+</section>
+
+<section class="grid two section">
+  <div class="card">
+    <h2>Prepared Context Link Types</h2>
+    <p class="muted">Diese Link Types sind Konfiguration. KAIRON baut damit noch keine vollständige Link Engine und keine Graphdatenbank-Integration.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Label</th>
+            <th>Source</th>
+            <th>Target</th>
+            <th>Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for link_type in context_link_config.active_link_types %}
+            <tr>
+              <td><code>{{ link_type.key }}</code></td>
+              <td>{{ link_type.label }}</td>
+              <td>{{ link_type.source_context_type }}</td>
+              <td>{{ link_type.target_context_type }}</td>
+              <td>{{ 'yes' if link_type.active else 'no' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Architekturgrenze</h2>
+    <p>Die Process Landscape ist eine aggregierte Sicht auf entscheidungsrelevante Prozesskontexte.</p>
+    <p class="muted">Nicht enthalten: BPMN-Editor, Flow-Canvas, Prozesssimulation, Scope-Engine, Mandantenfähigkeit oder generische Graphdatenbank-Integration.</p>
+  </div>
+</section>
+{% endblock %}

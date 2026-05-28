@@ -123,6 +123,9 @@
         <h2>Process Context</h2>
         <p class="muted">Prozesse sind Entscheidungsgrundlagen, kein BPMN-Modul. KAIRON speichert Prozessbezüge als Decision Context Objects, damit Entscheidungen nachvollziehbar mit Prozessräumen, Verantwortlichkeiten und Scopes verbunden bleiben.</p>
         <p><a class="btn small secondary" href="{{ url_for('ui.process_taxonomy') }}">Process Taxonomy anzeigen</a></p>
+        <p>
+          <a class="btn small secondary" href="{{ url_for('ui.process_landscape') }}">Process Landscape anzeigen</a>
+        </p>4
       </div>
     </div>
     <form method="post" action="{{ url_for('ui.create_process_context', decision_id=decision.id) }}">

@@ -18,6 +18,7 @@
       </a>
       <nav class="nav" aria-label="Hauptnavigation">
         <a class="{{ 'active' if active_nav == 'decisions' else '' }}" href="{{ url_for('ui.home') }}">Decisions</a>
+        <a class="{{ 'active' if active_nav == 'processes' else '' }}" href="{{ url_for('ui.process_landscape') }}">Process Landscape</a>
         <a class="{{ 'active' if active_nav == 'scenarios' else '' }}" href="{{ url_for('ui.scenarios_overview') }}">Scenarios</a>
         <a class="{{ 'active' if active_nav == 'compare' else '' }}" href="{{ url_for('ui.compare_overview') }}">Compare</a>
         <a class="{{ 'active' if active_nav == 'governance' else '' }}" href="{{ url_for('ui.governance_overview') }}">Governance</a>

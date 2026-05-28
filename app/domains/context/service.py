@@ -11,6 +11,8 @@ from app.domains.decision.models import Decision
 from app.domains.scenario.models import Scenario
 from app.shared.errors import NotFoundError
 
+from app.domains.context.process_config import ProcessTaxonomy, get_process_taxonomy
+
 
 class DecisionContextService:
     def __init__(self, session):
@@ -252,3 +254,43 @@ class DecisionContextService:
         if value not in CONFIDENCE_VALUES:
             raise ValueError("Invalid confidence")
         return value
+    
+    def list_process_contexts(
+        self,
+        decision_id: str | None = None,
+    ) -> list[DecisionContextObject]:
+        query = (
+            self.session.query(DecisionContextObject)
+            .filter(DecisionContextObject.context_type == "process")
+            .order_by(DecisionContextObject.created_at.desc())
+        )
+        if decision_id:
+            self._require_decision(decision_id)
+            query = query.filter(DecisionContextObject.decision_id == decision_id)
+        return query.all()
+
+    def process_landscape_items(self) -> list[dict[str, Any]]:
+        process_contexts = self.list_process_contexts()
+        items = []
+        for obj in process_contexts:
+            metadata = obj.metadata_json or {}
+            decision = getattr(obj, "decision", None)
+            related_context_count = 0
+            if decision is not None:
+                related_context_count = max(len(getattr(decision, "context_objects", [])) - 1, 0)
+            items.append({
+                "id": obj.id,
+                "decision_id": obj.decision_id,
+                "decision_title": decision.title if decision is not None else None,
+                "name": obj.name,
+                "description": obj.description,
+                "owner": obj.owner,
+                "scope": metadata.get("scope"),
+                "source": obj.source,
+                "confidence": obj.confidence,
+                "process_level": metadata.get("process_level"),
+                "process_level_label": metadata.get("process_level_label") or (metadata.get("process_level") or "").replace("_", " ").title(),
+                "related_context_count": related_context_count,
+                "created_at": obj.created_at,
+            })
+        return items
