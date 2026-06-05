@@ -6,6 +6,8 @@ from typing import Any
 from app.domains.context.models import DecisionContextObject
 from app.domains.context.context_relationship_service import (
     add_context_relationship as add_relationship_to_context_object,
+    build_context_related_objects,
+    build_decision_relationship_awareness,
     count_context_relationships,
     list_context_relationships,
     summarize_context_relationships,
@@ -249,6 +251,16 @@ class DecisionContextService:
     def summarize_context_relationships(self, decision_id: str) -> list[dict[str, Any]]:
         context_objects = self.list_context_objects(decision_id)
         return summarize_context_relationships(context_objects)
+
+    def relationship_awareness_for_decision(self, decision_id: str) -> dict[str, Any]:
+        decision = self._require_decision(decision_id)
+        context_objects = self.list_context_objects(decision_id)
+        return build_decision_relationship_awareness(decision, context_objects=context_objects)
+
+    def related_objects_for_context(self, context_object_id: str) -> dict[str, Any]:
+        context_object = self._require_context_object(context_object_id)
+        context_objects = self.list_context_objects(context_object.decision_id)
+        return build_context_related_objects(context_object, all_context_objects=context_objects)
 
     def update_context_object(self, context_object_id: str, **changes) -> DecisionContextObject:
         context_object = self._require_context_object(context_object_id)

@@ -1,0 +1,37 @@
+<section id="impact-map" class="grid two section">
+  <div class="card">
+    <div class="eyebrow">Impact orientation</div>
+    <h2>This decision is influenced by</h2>
+    {% if relationship_awareness.impact.influenced_by %}
+      <ul class="simple-list">
+        {% for item in relationship_awareness.impact.influenced_by %}
+          <li>
+            <strong>{{ item.name }}</strong>
+            <span class="muted"> · {{ item.type_label }}</span>
+            {% if item.relationship_reason %}<br><span class="muted">{{ item.relationship_reason }}</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No influencing context recorded yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Impact orientation</div>
+    <h2>This decision influences</h2>
+    {% if relationship_awareness.impact.influences %}
+      <ul class="simple-list">
+        {% for item in relationship_awareness.impact.influences %}
+          <li>
+            <strong>{{ item.name }}</strong>
+            <span class="muted"> · {{ item.type_label }}</span>
+            {% if item.relationship_reason %}<br><span class="muted">{{ item.relationship_reason }}</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No influenced objects recorded yet.</p>
+    {% endif %}
+  </div>
+</section>

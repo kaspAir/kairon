@@ -13,7 +13,10 @@ from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
 from app.domains.context.context_relationship_config import list_active_relationship_types
 from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
-from app.domains.context.context_relationship_service import summarize_context_relationships
+from app.domains.context.context_relationship_service import (
+    build_decision_relationship_awareness,
+    summarize_context_relationships,
+)
 from app.domains.context.models import DecisionContextObject
 from app.domains.context.service import DecisionContextService
 from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFIDENCE_VALUES
@@ -473,6 +476,7 @@ def _workspace_view_model(decision: Decision) -> dict:
         "dominant_risk": _dominant_risk_context(decision) or _dominant_risk(decision),
         "risk_contexts": [_risk_context_view_model(obj) for obj in _risk_contexts(decision)],
         "process_contexts": [_process_context_view_model(obj) for obj in _process_contexts(decision)],
+        "relationship_awareness": build_decision_relationship_awareness(decision),
         "process_taxonomy": get_process_taxonomy().as_dict(),
         "governance_status": _governance_state(decision),
         "status_sequence": STATUS_SEQUENCE,

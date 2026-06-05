@@ -21,6 +21,7 @@
   <a class="tab" href="#lifecycle">Lifecycle</a>
   <a class="tab" href="#variants">Variants</a>
   <a class="tab" href="#context">Context</a>
+  <a class="tab" href="#related-objects">Related Objects</a>
   <a class="tab" href="#process-context">Process Context</a>
   <a class="tab" href="#scenarios">Scenarios</a>
   <a class="tab" href="#simulations">Simulations</a>
@@ -37,6 +38,9 @@
   <div class="card compact"><h3>Scenarios</h3><div class="metric-value">{{ decision.scenarios|length }}</div></div>
   <div class="card compact"><h3>Governance</h3>{% set governance_state = decision_card.pending_governance_state %}{% include 'components/governance_state.html' %}</div>
 </section>
+
+{% include 'partials/related_objects.html' %}
+{% include 'partials/impact_map.html' %}
 
 <section id="lifecycle" class="section">
   <div class="card">

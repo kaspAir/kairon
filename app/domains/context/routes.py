@@ -72,6 +72,25 @@ def decision_context_relationships(decision_id):
         })
 
 
+
+
+@bp.get("/decisions/<decision_id>/relationship-awareness")
+def decision_relationship_awareness(decision_id):
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        return jsonify({
+            "decision_id": decision_id,
+            "relationship_awareness": service.relationship_awareness_for_decision(decision_id),
+        })
+
+
+@bp.get("/context/<context_object_id>/related-objects")
+def context_related_objects(context_object_id):
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        return jsonify(service.related_objects_for_context(context_object_id))
+
+
 @bp.get("/decisions/<decision_id>/context-objects")
 def list_context_objects(decision_id):
     with session_scope() as session:

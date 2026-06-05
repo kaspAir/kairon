@@ -1,0 +1,45 @@
+<section id="related-objects" class="section">
+  <div class="card">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">Relevant context</div>
+        <h2>Related Objects</h2>
+        <p class="muted">Fachliche Zusammenhänge rund um diese Decision. Die Übersicht zeigt, welche Prozesse, Risiken, Policies, Szenarien und Governance-Aspekte für die Entscheidung relevant sind.</p>
+      </div>
+      <div class="metric-pill">{{ relationship_awareness.total_related_objects }} Related Object(s)</div>
+    </div>
+
+    <div class="grid three">
+      {% for category in relationship_awareness.related_objects.values() %}
+        <details class="card compact" {% if category.count > 0 %}open{% endif %}>
+          <summary>
+            <strong>{{ category.label }}</strong>
+            <span class="metric-pill">{{ category.count }}</span>
+          </summary>
+
+          {% if category.items %}
+            <ul class="simple-list">
+              {% for item in category.items %}
+                <li>
+                  {% if item.detail_url %}
+                    <a href="{{ item.detail_url }}">{{ item.name }}</a>
+                  {% else %}
+                    <strong>{{ item.name }}</strong>
+                  {% endif %}
+                  <span class="muted"> · {{ item.type_label }}</span>
+                  {% if item.relationship_reason %}
+                    <br><span class="muted">{{ item.relationship_reason }}</span>
+                  {% elif item.description %}
+                    <br><span class="muted">{{ item.description }}</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="muted">No related {{ category.label|lower }} recorded yet.</p>
+          {% endif %}
+        </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
