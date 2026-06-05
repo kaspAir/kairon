@@ -10,8 +10,11 @@ from flask import Blueprint, current_app, redirect, render_template, request, ur
 
 from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
+from app.domains.context.context_relationship_config import list_active_relationship_types
 from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
+from app.domains.context.context_relationship_service import summarize_context_relationships
+from app.domains.context.models import DecisionContextObject
 from app.domains.context.service import DecisionContextService
 from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFIDENCE_VALUES
 from app.domains.assessment.service import RiskAssessmentService
@@ -836,6 +839,26 @@ def create_record(decision_id):
     with session_scope() as session:
         GovernanceService(session).create_decision_record(decision_id, created_by=_created_by())
     return redirect(url_for("ui.decision_record", decision_id=decision_id, message="Decision record generated", level="success"))
+
+
+@bp.get("/context-relationships")
+def context_relationships():
+    with session_scope() as session:
+        all_context_objects = (
+            session.query(DecisionContextObject)
+            .order_by(DecisionContextObject.context_type.asc(), DecisionContextObject.created_at.desc())
+            .all()
+        )
+        return render_template(
+            "context_relationships.html",
+            active_nav="processes",
+            message=_message(),
+            relationship_types=[
+                relationship_type.as_dict()
+                for relationship_type in list_active_relationship_types()
+            ],
+            relationship_summary=summarize_context_relationships(all_context_objects),
+        )
 
 @bp.get("/process-landscape")
 def process_landscape():

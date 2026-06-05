@@ -45,7 +45,15 @@
                 <span>Source: <strong>{{ item.source or 'not captured' }}</strong></span>
                 <span>Confidence: <strong>{{ item.confidence|title }}</strong></span>
                 <span>Connected Context Objects: <strong>{{ item.related_context_count }}</strong></span>
+                <span>Relationships: <strong>{{ item.relationship_count }}</strong></span>
               </div>
+
+              <p>
+                Context Relationships:
+                <a href="{{ url_for('ui.context_relationships') }}">
+                  {{ item.relationship_count }} anzeigen
+                </a>
+              </p>
 
               {% if item.decision_id %}
                 <p>

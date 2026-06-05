@@ -4,6 +4,12 @@ from datetime import datetime
 from typing import Any
 
 from app.domains.context.models import DecisionContextObject
+from app.domains.context.context_relationship_service import (
+    add_context_relationship as add_relationship_to_context_object,
+    count_context_relationships,
+    list_context_relationships,
+    summarize_context_relationships,
+)
 from app.domains.context.process_config import ProcessTaxonomy, get_process_taxonomy
 from app.domains.context.risk_config import ContextTaxonomy, get_risk_taxonomy
 from app.domains.context.types import CONFIDENCE_VALUES, CONTEXT_TYPES
@@ -204,6 +210,46 @@ class DecisionContextService:
             "review_required": review_required,
         }
 
+
+    def add_context_relationship(
+        self,
+        context_object_id: str,
+        *,
+        relationship_type: str,
+        target_context_id: str,
+        target_context_type: str | None = None,
+        label: str | None = None,
+        reason: str | None = None,
+        confidence: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        context_object = self._require_context_object(context_object_id)
+        relationship = add_relationship_to_context_object(
+            context_object,
+            relationship_type=relationship_type,
+            target_context_id=target_context_id,
+            target_context_type=target_context_type,
+            label=label,
+            reason=reason,
+            confidence=confidence,
+            extra=extra,
+        )
+        self.session.add(context_object)
+        self.session.flush()
+        return relationship
+
+    def list_context_relationships(self, context_object_id: str) -> list[dict[str, Any]]:
+        context_object = self._require_context_object(context_object_id)
+        return list_context_relationships(context_object)
+
+    def count_context_relationships(self, context_object_id: str) -> int:
+        context_object = self._require_context_object(context_object_id)
+        return count_context_relationships(context_object)
+
+    def summarize_context_relationships(self, decision_id: str) -> list[dict[str, Any]]:
+        context_objects = self.list_context_objects(decision_id)
+        return summarize_context_relationships(context_objects)
+
     def update_context_object(self, context_object_id: str, **changes) -> DecisionContextObject:
         context_object = self._require_context_object(context_object_id)
         if "context_type" in changes and changes["context_type"] is not None:
@@ -291,6 +337,7 @@ class DecisionContextService:
                 "process_level": metadata.get("process_level"),
                 "process_level_label": metadata.get("process_level_label") or (metadata.get("process_level") or "").replace("_", " ").title(),
                 "related_context_count": related_context_count,
+                "relationship_count": count_context_relationships(obj),
                 "created_at": obj.created_at,
             })
         return items
