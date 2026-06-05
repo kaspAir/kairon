@@ -12,6 +12,15 @@ pipeline {
             }
         }
 
+        stage('Clean Docker Pipeline Containers') {
+            steps {
+                sh '''
+                    docker rm -f kairon-pipeline-db kairon-pipeline-app || true
+                    docker compose -f docker-compose.pipeline.yml down -v --remove-orphans || true
+                '''
+            }
+        }
+
         stage('Checkout SCM') {
             steps {
                 checkout scm
