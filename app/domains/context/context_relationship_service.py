@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
+from sqlalchemy.orm.attributes import flag_modified
+
 from app.domains.context.context_relationship_config import get_relationship_type
 
 
@@ -61,6 +63,7 @@ def add_context_relationship(
     metadata = _metadata(context_object)
     metadata["relationships"] = relationships
     context_object.metadata_json = dict(metadata)
+    flag_modified(context_object, "metadata_json")
 
     return relationship
 
