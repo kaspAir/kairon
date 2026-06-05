@@ -188,8 +188,20 @@ def _add_related_item(related_objects: dict[str, dict[str, Any]], item: dict[str
             "items": [],
         },
     )
-    if any(existing.get("id") == item.get("id") and existing.get("relationship_type") == item.get("relationship_type") for existing in category["items"]):
-        return
+
+    item_id = str(item.get("id") or "").strip()
+    item_context_type = item.get("context_type")
+
+    # Relationship Awareness is a user-facing context view, not a technical
+    # relationship listing. The same object can be present as a normal Decision
+    # Context Object and as the target of a relationship. It must still be counted
+    # once per category. Prefer the richer relationship-aware item if available.
+    for index, existing in enumerate(category["items"]):
+        if str(existing.get("id") or "").strip() == item_id and existing.get("context_type") == item_context_type:
+            if item.get("relationship_type") and not existing.get("relationship_type"):
+                category["items"][index] = item
+            return
+
     category["items"].append(item)
     category["count"] = len(category["items"])
 

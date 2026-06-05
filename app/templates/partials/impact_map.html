@@ -2,9 +2,9 @@
   <div class="card">
     <div class="eyebrow">Impact orientation</div>
     <h2>This decision is influenced by</h2>
-    {% if relationship_awareness.impact.influenced_by %}
+    {% if relationship_awareness["impact"]["influenced_by"] %}
       <ul class="simple-list">
-        {% for item in relationship_awareness.impact.influenced_by %}
+        {% for item in relationship_awareness["impact"]["influenced_by"] %}
           <li>
             <strong>{{ item.name }}</strong>
             <span class="muted"> · {{ item.type_label }}</span>
@@ -20,9 +20,9 @@
   <div class="card">
     <div class="eyebrow">Impact orientation</div>
     <h2>This decision influences</h2>
-    {% if relationship_awareness.impact.influences %}
+    {% if relationship_awareness["impact"]["influences"] %}
       <ul class="simple-list">
-        {% for item in relationship_awareness.impact.influences %}
+        {% for item in relationship_awareness["impact"]["influences"] %}
           <li>
             <strong>{{ item.name }}</strong>
             <span class="muted"> · {{ item.type_label }}</span>
