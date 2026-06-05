@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Context Relationships{% endblock %}
+{% block content %}
+<section class="hero compact-hero">
+  <div>
+    <p class="eyebrow">Decision Context Foundation</p>
+    <h1>Context Relationships</h1>
+    <p class="muted">Beziehungen zwischen Decision Context Objects werden in V0.x bewusst schlank in metadata_json geführt. Keine Relationship-Tabelle, keine Graph Engine, keine Conflict Engine.</p>
+  </div>
+  <div class="actions">
+    <a class="btn ghost" href="{{ url_for('ui.process_landscape') }}">Zur Process Landscape</a>
+    <a class="btn ghost" href="{{ url_for('ui.home') }}">Zum Workspace</a>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">Relationship Type Übersicht</div>
+      <h2>Aktive Relationship Types</h2>
+      <p class="muted">Diese Typen sind Konfiguration und bilden die vorbereitende Grundlage für spätere fachliche Verknüpfungen.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    {% if relationship_types %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Label</th>
+              <th>Source</th>
+              <th>Target</th>
+              <th>Bidirectional</th>
+              <th>Active</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for relationship_type in relationship_types %}
+              <tr>
+                <td><code>{{ relationship_type.key }}</code></td>
+                <td>{{ relationship_type.label }}</td>
+                <td>{{ relationship_type.source_context_type }}</td>
+                <td>{{ relationship_type.target_context_type }}</td>
+                <td>{{ 'yes' if relationship_type.bidirectional else 'no' }}</td>
+                <td>{{ 'yes' if relationship_type.active else 'no' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      {% set title = 'Keine Relationship Types konfiguriert' %}
+      {% set text = 'Es sind noch keine aktiven Relationship Types verfügbar.' %}
+      {% include 'components/empty_state.html' %}
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">Relationship Bestand</div>
+      <h2>Vorhandene Context Relationships</h2>
+      <p class="muted">Diese Sicht zeigt vorhandene Beziehungen, die direkt am jeweiligen Decision Context Object gespeichert sind.</p>
+    </div>
+  </div>
+
+  {% if relationship_summary %}
+    {% for item in relationship_summary %}
+      <div class="card section">
+        <div class="section-heading compact-heading">
+          <div>
+            <h2>{{ item.name or item.context_id }}</h2>
+            <p class="muted">{{ item.context_type }} · {{ item.relationship_count }} Relationship(s)</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Target Context</th>
+                <th>Target Type</th>
+                <th>Label</th>
+                <th>Reason</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for relationship in item.relationships %}
+                <tr>
+                  <td><code>{{ relationship.type }}</code></td>
+                  <td>{{ relationship.target_context_id }}</td>
+                  <td>{{ relationship.target_context_type }}</td>
+                  <td>{{ relationship.label }}</td>
+                  <td>{{ relationship.reason or 'not captured' }}</td>
+                  <td>{{ relationship.confidence or 'not rated' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="card">
+      {% set title = 'Noch keine Context Relationships vorhanden' %}
+      {% set text = 'Sobald Beziehungen per API an Decision Context Objects gehängt werden, erscheinen sie hier.' %}
+      {% include 'components/empty_state.html' %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
