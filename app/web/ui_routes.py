@@ -586,6 +586,9 @@ def load_demo_seed():
 def _render_overview(section: str):
     page = OVERVIEW_PAGES.get(section)
     if page is None:
+        if page is None:
+            if section == "demo-seed":
+                return redirect(url_for("ui.home"))
         raise NotFoundError("Workspace section not found")
     with session_scope() as session:
         decisions = session.query(Decision).order_by(Decision.created_at.desc()).all()
