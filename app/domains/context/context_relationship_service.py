@@ -98,6 +98,123 @@ def summarize_context_relationships(context_objects) -> list[dict[str, Any]]:
 def detect_context_conflicts(relationships) -> list[dict[str, Any]]:
     return []
 
+<<<<<<< Updated upstream
+_RELATED_OBJECT_CATEGORIES = {
+    "process": ("processes", "Related Processes"),
+    "risk": ("risks", "Related Risks"),
+    "policy": ("policies", "Related Policies"),
+    "scenario": ("scenarios", "Related Scenarios"),
+    "observation": ("observations", "Related Observations"),
+    "governance": ("governance_objects", "Related Governance Objects"),
+    "governance_object": ("governance_objects", "Related Governance Objects"),
+    "control": ("governance_objects", "Related Governance Objects"),
+}
+
+_DEFAULT_RELATED_OBJECTS = (
+    ("processes", "Related Processes"),
+    ("risks", "Related Risks"),
+    ("policies", "Related Policies"),
+    ("scenarios", "Related Scenarios"),
+    ("observations", "Related Observations"),
+    ("governance_objects", "Related Governance Objects"),
+)
+=======
+from typing import Any
+from uuid import uuid4
+
+from sqlalchemy.orm.attributes import flag_modified
+
+from app.domains.context.context_relationship_config import get_relationship_type
+
+
+def _metadata(context_object) -> dict[str, Any]:
+    metadata = getattr(context_object, "metadata_json", None)
+    if not isinstance(metadata, dict):
+        metadata = {}
+    context_object.metadata_json = metadata
+    return metadata
+>>>>>>> Stashed changes
+
+
+def _object_label(context_type: str) -> tuple[str, str] | None:
+    return _RELATED_OBJECT_CATEGORIES.get((context_type or "").strip().lower())
+
+
+<<<<<<< Updated upstream
+=======
+def add_context_relationship(
+    context_object,
+    *,
+    relationship_type: str,
+    target_context_id: str,
+    target_context_type: str | None = None,
+    label: str | None = None,
+    reason: str | None = None,
+    confidence: str | None = None,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    configured_type = get_relationship_type(relationship_type)
+    if configured_type is None or not configured_type.active:
+        raise ValueError(f"Unsupported or inactive relationship type: {relationship_type}")
+
+    target_id = str(target_context_id or "").strip()
+    if not target_id:
+        raise ValueError("target_context_id is required")
+
+    relationship = {
+        "id": str(uuid4()),
+        "type": relationship_type,
+        "target_context_id": target_id,
+        "target_context_type": target_context_type or configured_type.target_context_type,
+        "label": label or configured_type.label,
+        "reason": reason,
+        "confidence": confidence,
+    }
+
+    if extra and isinstance(extra, dict):
+        relationship.update(extra)
+
+    relationships = _relationships(context_object)
+    relationships.append(relationship)
+
+    metadata = _metadata(context_object)
+    metadata["relationships"] = relationships
+    context_object.metadata_json = dict(metadata)
+    flag_modified(context_object, "metadata_json")
+
+    return relationship
+
+
+def list_context_relationships(context_object) -> list[dict[str, Any]]:
+    return list(_relationships(context_object))
+
+
+def count_context_relationships(context_object) -> int:
+    return len(list_context_relationships(context_object))
+
+
+def summarize_context_relationships(context_objects) -> list[dict[str, Any]]:
+    summary = []
+    for context_object in context_objects:
+        relationships = list_context_relationships(context_object)
+        if not relationships:
+            continue
+        summary.append(
+            {
+                "context_id": str(context_object.id),
+                "decision_id": str(context_object.decision_id),
+                "context_type": context_object.context_type,
+                "name": context_object.name,
+                "relationship_count": len(relationships),
+                "relationships": relationships,
+            }
+        )
+    return summary
+
+
+def detect_context_conflicts(relationships) -> list[dict[str, Any]]:
+    return []
+
 _RELATED_OBJECT_CATEGORIES = {
     "process": ("processes", "Related Processes"),
     "risk": ("risks", "Related Risks"),
@@ -123,6 +240,7 @@ def _object_label(context_type: str) -> tuple[str, str] | None:
     return _RELATED_OBJECT_CATEGORIES.get((context_type or "").strip().lower())
 
 
+>>>>>>> Stashed changes
 def _awareness_item(context_object, relationship: dict[str, Any] | None = None) -> dict[str, Any]:
     metadata = getattr(context_object, "metadata_json", None) or {}
     item = {
@@ -193,9 +311,18 @@ def build_decision_relationship_awareness(decision) -> dict[str, Any]:
                 continue
             add_related(target, relationship)
             add_impact(influences, seen_influences, target, relationship)
+<<<<<<< Updated upstream
+=======
+
+    summary_counts = {
+        key: value.get("count", 0)
+        for key, value in related_objects.items()
+    }
+>>>>>>> Stashed changes
 
     return {
         "related_objects": related_objects,
+        "summary_counts": summary_counts,
         "impact": {
             "influenced_by": influenced_by,
             "influences": influences,

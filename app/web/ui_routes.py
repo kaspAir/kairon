@@ -29,6 +29,7 @@ from app.domains.scenario.service import ScenarioService
 from app.domains.simulation.service import SimulationService
 from app.shared.database import session_scope
 from app.shared.errors import NotFoundError
+from app.shared.i18n import translate
 
 from app.domains.context.link_config import context_link_config_view_model
 
@@ -531,6 +532,10 @@ def _workspace_view_model(decision: Decision) -> dict:
         "decision_workspace_header": _decision_workspace_header(decision),
         "expected_future": _expected_future(decision, rows),
         "reassessment_workspace": _reassessment_workspace(decision),
+<<<<<<< Updated upstream
+=======
+        "t": translate,
+>>>>>>> Stashed changes
     }
 
 
