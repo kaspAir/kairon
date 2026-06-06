@@ -537,7 +537,14 @@ def _workspace_view_model(decision: Decision) -> dict:
         "decision_workspace_header": _decision_workspace_header(decision),
         "expected_future": _expected_future(decision, rows),
         "reassessment_workspace": _reassessment_workspace(decision),
-
+        "decision_narrative": {
+            "brief": "",
+            "why": {},
+            "circumstances": {},
+            "options": {},
+            "expected_future": {},
+            "reassessment": {},
+        },
         "t": translate,
     }
 
