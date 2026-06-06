@@ -1,6 +1,17 @@
 from app.domains.decision.models import Decision
+from app.domains.decision.status import APPROVED, IN_REVIEW, REASSESSMENT_NEEDED
 from app.domains.governance.models import ApprovalRecord, DecisionRecord
 from app.shared.errors import NotFoundError
+
+
+def _decision_status_for_approval_status(status: str) -> str:
+    if status == "approved":
+        return APPROVED
+    if status == "needs_review":
+        return REASSESSMENT_NEEDED
+    if status == "rejected":
+        return IN_REVIEW
+    return IN_REVIEW
 
 
 class GovernanceService:
@@ -23,7 +34,7 @@ class GovernanceService:
         if not approved_by or not approved_by.strip():
             raise ValueError("approved_by is required")
         approval = ApprovalRecord(decision_id=decision_id, approved_by=approved_by.strip(), status=status, comment=comment, created_by=created_by)
-        decision.status = status
+        decision.status = _decision_status_for_approval_status(status)
         self.session.add(approval)
         self.session.flush()
         return approval

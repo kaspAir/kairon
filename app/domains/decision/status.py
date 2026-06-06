@@ -35,7 +35,24 @@ DECISION_STATUS_DEFINITIONS: tuple[DecisionStatusDefinition, ...] = (
 )
 
 DECISION_STATUS_LABELS = {definition.value: definition.label for definition in DECISION_STATUS_DEFINITIONS}
-VALID_DECISION_STATUSES = frozenset(DECISION_STATUS_LABELS)
+
+# Compatibility aliases for historic or governance-derived values that may still
+# be present in existing demo/local data. They must never break UI rendering.
+LEGACY_DECISION_STATUS_ALIASES: dict[str, str] = {
+    "needs_review": REASSESSMENT_NEEDED,
+    "review_needed": REASSESSMENT_NEEDED,
+    "requires_review": REASSESSMENT_NEEDED,
+    "review": IN_REVIEW,
+}
+
+DECISION_STATUS_LABELS.update({
+    "needs_review": "Needs Review",
+    "review_needed": "Needs Review",
+    "requires_review": "Needs Review",
+    "review": "In Review",
+})
+
+VALID_DECISION_STATUSES = frozenset(definition.value for definition in DECISION_STATUS_DEFINITIONS)
 
 ALLOWED_STATUS_TRANSITIONS: dict[str, tuple[str, ...]] = {
     DRAFT: (IN_REVIEW, ARCHIVED),
@@ -52,10 +69,18 @@ ALLOWED_STATUS_TRANSITIONS: dict[str, tuple[str, ...]] = {
 
 
 def normalize_decision_status(status: str | None) -> str:
+    """Return a valid lifecycle status for current and legacy values.
+
+    Older demo/governance data may contain values such as ``needs_review`` that
+    are not part of the controlled Decision lifecycle. UI rendering and dashboard
+    aggregation must degrade gracefully for such values instead of raising a 400.
+    """
     normalized = (status or "").strip().lower().replace("-", "_").replace(" ", "_")
-    if normalized not in VALID_DECISION_STATUSES:
-        raise ValueError(f"Unknown decision status: {status}")
-    return normalized
+    if normalized in VALID_DECISION_STATUSES:
+        return normalized
+    if normalized in LEGACY_DECISION_STATUS_ALIASES:
+        return LEGACY_DECISION_STATUS_ALIASES[normalized]
+    return REASSESSMENT_NEEDED
 
 
 def allowed_next_statuses(current_status: str | None) -> tuple[str, ...]:
