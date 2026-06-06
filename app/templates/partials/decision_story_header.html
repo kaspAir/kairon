@@ -1,0 +1,29 @@
+<section class="section decision-workspace-foundation" id="decision-workspace">
+  <div class="eyebrow">{{ t('decision_workspace.title') }}</div>
+  <div class="toolbar">
+    <div>
+      <h1>{{ decision_workspace_header.title }}</h1>
+      <p class="lead">{{ decision.context or t('decision_workspace.no_decision_rationale') }}</p>
+    </div>
+    <div class="actions">
+      {% set status = decision_workspace_header.governance_status %}{% include 'components/status_badge.html' %}
+      <a class="btn secondary" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">{{ t('decision_workspace.open_compare') }}</a>
+      <a class="btn ghost" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">{{ t('decision_workspace.open_decision_record') }}</a>
+    </div>
+  </div>
+  <div class="card compact decision-story-card">
+    <div class="section-heading compact-heading">
+      <div>
+        <h2>{{ t('decision_workspace.story_header') }}</h2>
+      </div>
+    </div>
+    <div class="meta-grid compact-meta">
+      <span>{{ t('decision_workspace.status') }}: <strong>{{ status_labels.get(decision_workspace_header.status, decision_workspace_header.status|replace('_', ' ')|title) }}</strong></span>
+      <span>{{ t('decision_workspace.created_at') }}: <strong>{{ decision_workspace_header.created_at.strftime('%Y-%m-%d') }}</strong></span>
+      <span>{{ t('decision_workspace.review_date') }}: <strong>{{ decision_workspace_header.review_date or '—' }}</strong></span>
+      <span>{{ t('decision_workspace.owner') }}: <strong>{{ decision_workspace_header.owner or '—' }}</strong></span>
+      <span>{{ t('decision_workspace.confidence') }}: <strong>{{ decision_workspace_header.confidence|title }}</strong></span>
+      <span>{{ t('decision_workspace.governance_status') }}: <strong>{{ decision_workspace_header.governance_status|replace('_', ' ')|title }}</strong></span>
+    </div>
+  </div>
+</section>

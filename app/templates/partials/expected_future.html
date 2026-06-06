@@ -1,0 +1,32 @@
+<section id="expected-future" class="section">
+  <div class="section-heading compact-heading">
+    <div>
+      <div class="eyebrow">{{ t('decision_workspace.expected_future') }}</div>
+      <h2>{{ t('decision_workspace.expected_future') }}</h2>
+      <p class="muted">{{ t('decision_workspace.future_help') }}</p>
+    </div>
+  </div>
+  {% if expected_future.has_expected_future %}
+    <div class="grid three">
+      <div class="card compact">
+        <h3>{{ t('decision_workspace.scenarios_considered') }}</h3>
+        <div class="metric-value">{{ expected_future.scenarios|length }}</div>
+        {% for row in expected_future.scenarios %}<p class="muted">{{ row.scenario.name }}</p>{% endfor %}
+      </div>
+      <div class="card compact">
+        <h3>{{ t('decision_workspace.assumptions') }}</h3>
+        <div class="metric-value">{{ expected_future.assumptions|length }}</div>
+        {% for assumption in expected_future.assumptions %}<p class="muted">{{ assumption.name }}</p>{% endfor %}
+      </div>
+      <div class="card compact">
+        <h3>{{ t('decision_workspace.expected_impact') }}</h3>
+        <div class="metric-value">{{ expected_future.impact_rows|length }}</div>
+        {% for row in expected_future.impact_rows %}<p class="muted">{{ row.variant.name }}{% if row.scenario %} · {{ row.scenario.name }}{% endif %}</p>{% endfor %}
+      </div>
+    </div>
+  {% else %}
+    {% set title = t('decision_workspace.expected_future') %}
+    {% set text = t('decision_workspace.no_scenarios') %}
+    {% include 'components/empty_state.html' %}
+  {% endif %}
+</section>

@@ -1,37 +1,36 @@
-<section id="impact-map" class="grid two section">
-  <div class="card">
-    <div class="eyebrow">Impact orientation</div>
-    <h2>This decision is influenced by</h2>
-    {% if relationship_awareness["impact"]["influenced_by"] %}
-      <ul class="simple-list">
-        {% for item in relationship_awareness["impact"]["influenced_by"] %}
-          <li>
-            <strong>{{ item.name }}</strong>
-            <span class="muted"> · {{ item.type_label }}</span>
-            {% if item.relationship_reason %}<br><span class="muted">{{ item.relationship_reason }}</span>{% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">No influencing context recorded yet.</p>
-    {% endif %}
+{% set awareness = relationship_awareness or {} %}
+{% set impact = awareness.get('impact', {}) %}
+<section id="impact-awareness" class="section">
+  <div class="section-heading compact-heading">
+    <div>
+      <div class="eyebrow">{{ t('decision_workspace.impact') }}</div>
+      <h2>{{ t('decision_workspace.impact') }}</h2>
+    </div>
   </div>
-
-  <div class="card">
-    <div class="eyebrow">Impact orientation</div>
-    <h2>This decision influences</h2>
-    {% if relationship_awareness["impact"]["influences"] %}
-      <ul class="simple-list">
-        {% for item in relationship_awareness["impact"]["influences"] %}
-          <li>
-            <strong>{{ item.name }}</strong>
-            <span class="muted"> · {{ item.type_label }}</span>
-            {% if item.relationship_reason %}<br><span class="muted">{{ item.relationship_reason }}</span>{% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">No influenced objects recorded yet.</p>
-    {% endif %}
+  <div class="grid two">
+    <div class="card compact">
+      <h3>{{ t('decision_workspace.influenced_by') }}</h3>
+      {% if impact.get('influenced_by') %}
+        <ul class="clean-list">
+          {% for item in impact.get('influenced_by', []) %}
+            <li><strong>{{ item.name }}</strong>{% if item.description %}<br><span class="muted">{{ item.description }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">{{ t('decision_workspace.no_influenced_by') }}</p>
+      {% endif %}
+    </div>
+    <div class="card compact">
+      <h3>{{ t('decision_workspace.influences') }}</h3>
+      {% if impact.get('influences') %}
+        <ul class="clean-list">
+          {% for item in impact.get('influences', []) %}
+            <li><strong>{{ item.name }}</strong>{% if item.reason %}<br><span class="muted">{{ item.reason }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">{{ t('decision_workspace.no_influences') }}</p>
+      {% endif %}
+    </div>
   </div>
 </section>

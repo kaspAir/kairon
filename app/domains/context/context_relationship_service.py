@@ -8,22 +8,6 @@ from sqlalchemy.orm.attributes import flag_modified
 from app.domains.context.context_relationship_config import get_relationship_type
 
 
-RELATED_OBJECT_CATEGORIES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
-    ("processes", "Processes", "Related Processes", ("process",)),
-    ("risks", "Risks", "Related Risks", ("risk",)),
-    ("policies", "Policies", "Related Policies", ("policy",)),
-    ("scenarios", "Scenarios", "Related Scenarios", ("scenario",)),
-    ("observations", "Observations", "Related Observations", ("observation", "observations")),
-    ("governance_objects", "Governance Objects", "Related Governance Objects", ("governance", "control", "role", "organization")),
-)
-
-_CATEGORY_BY_CONTEXT_TYPE = {
-    context_type: category_key
-    for category_key, _label, _title, context_types in RELATED_OBJECT_CATEGORIES
-    for context_type in context_types
-}
-
-
 def _metadata(context_object) -> dict[str, Any]:
     metadata = getattr(context_object, "metadata_json", None)
     if not isinstance(metadata, dict):
@@ -111,159 +95,104 @@ def summarize_context_relationships(context_objects) -> list[dict[str, Any]]:
     return summary
 
 
-def _object_label(obj: Any, fallback: str | None = None) -> str:
-    return (
-        getattr(obj, "name", None)
-        or getattr(obj, "title", None)
-        or getattr(obj, "approved_by", None)
-        or getattr(obj, "comment", None)
-        or fallback
-        or str(getattr(obj, "id", "Unknown object"))
-    )
+def detect_context_conflicts(relationships) -> list[dict[str, Any]]:
+    return []
+
+_RELATED_OBJECT_CATEGORIES = {
+    "process": ("processes", "Related Processes"),
+    "risk": ("risks", "Related Risks"),
+    "policy": ("policies", "Related Policies"),
+    "scenario": ("scenarios", "Related Scenarios"),
+    "observation": ("observations", "Related Observations"),
+    "governance": ("governance_objects", "Related Governance Objects"),
+    "governance_object": ("governance_objects", "Related Governance Objects"),
+    "control": ("governance_objects", "Related Governance Objects"),
+}
+
+_DEFAULT_RELATED_OBJECTS = (
+    ("processes", "Related Processes"),
+    ("risks", "Related Risks"),
+    ("policies", "Related Policies"),
+    ("scenarios", "Related Scenarios"),
+    ("observations", "Related Observations"),
+    ("governance_objects", "Related Governance Objects"),
+)
 
 
-def _context_object_item(context_object, *, relationship: dict[str, Any] | None = None, direction: str | None = None) -> dict[str, Any]:
+def _object_label(context_type: str) -> tuple[str, str] | None:
+    return _RELATED_OBJECT_CATEGORIES.get((context_type or "").strip().lower())
+
+
+def _awareness_item(context_object, relationship: dict[str, Any] | None = None) -> dict[str, Any]:
     metadata = getattr(context_object, "metadata_json", None) or {}
-    return {
-        "id": str(context_object.id),
-        "name": context_object.name,
-        "description": context_object.description,
-        "context_type": context_object.context_type,
-        "type_label": context_object.context_type.replace("_", " ").title(),
-        "owner": context_object.owner,
-        "confidence": context_object.confidence,
-        "source": context_object.source,
-        "metadata": metadata,
-        "relationship_label": (relationship or {}).get("label"),
-        "relationship_reason": (relationship or {}).get("reason"),
-        "relationship_confidence": (relationship or {}).get("confidence"),
-        "relationship_type": (relationship or {}).get("type"),
-        "direction": direction,
-        "detail_url": None,
+    item = {
+        "id": str(getattr(context_object, "id", "")),
+        "name": getattr(context_object, "name", None) or metadata.get("name") or str(getattr(context_object, "id", "")),
+        "description": getattr(context_object, "description", None),
+        "context_type": getattr(context_object, "context_type", None),
+        "owner": getattr(context_object, "owner", None),
+        "confidence": getattr(context_object, "confidence", None),
+        "source": getattr(context_object, "source", None),
+        "relationship_type": relationship.get("type") if relationship else None,
+        "relationship_label": relationship.get("label") if relationship else None,
+        "reason": relationship.get("reason") if relationship else None,
+        "url": None,
     }
-
-
-def _generic_item(obj: Any, context_type: str, *, relationship: dict[str, Any] | None = None, direction: str | None = None) -> dict[str, Any]:
-    return {
-        "id": str(getattr(obj, "id", "")),
-        "name": _object_label(obj, context_type.replace("_", " ").title()),
-        "description": getattr(obj, "description", None) or getattr(obj, "comment", None),
-        "context_type": context_type,
-        "type_label": context_type.replace("_", " ").title(),
-        "owner": getattr(obj, "owner", None) or getattr(obj, "created_by", None),
-        "confidence": getattr(obj, "confidence", None),
-        "source": getattr(obj, "source", None),
-        "metadata": {},
-        "relationship_label": (relationship or {}).get("label"),
-        "relationship_reason": (relationship or {}).get("reason"),
-        "relationship_confidence": (relationship or {}).get("confidence"),
-        "relationship_type": (relationship or {}).get("type"),
-        "direction": direction,
-        "detail_url": None,
-    }
+    return item
 
 
 def _empty_related_objects() -> dict[str, dict[str, Any]]:
     return {
-        key: {
-            "key": key,
-            "label": label,
-            "title": title,
-            "count": 0,
-            "items": [],
-        }
-        for key, label, title, _context_types in RELATED_OBJECT_CATEGORIES
+        key: {"label": label, "count": 0, "items": []}
+        for key, label in _DEFAULT_RELATED_OBJECTS
     }
 
 
-def _add_related_item(related_objects: dict[str, dict[str, Any]], item: dict[str, Any]) -> None:
-    category_key = _CATEGORY_BY_CONTEXT_TYPE.get(item.get("context_type"), "governance_objects")
-    category = related_objects.setdefault(
-        category_key,
-        {
-            "key": category_key,
-            "label": category_key.replace("_", " ").title(),
-            "title": f"Related {category_key.replace('_', ' ').title()}",
-            "count": 0,
-            "items": [],
-        },
-    )
+def build_decision_relationship_awareness(decision) -> dict[str, Any]:
+    """Build a user-facing relationship awareness view for a decision.
 
-    item_id = str(item.get("id") or "").strip()
-    item_context_type = item.get("context_type")
-
-    # Relationship Awareness is a user-facing context view, not a technical
-    # relationship listing. The same object can be present as a normal Decision
-    # Context Object and as the target of a relationship. It must still be counted
-    # once per category. Prefer the richer relationship-aware item if available.
-    for index, existing in enumerate(category["items"]):
-        if str(existing.get("id") or "").strip() == item_id and existing.get("context_type") == item_context_type:
-            if item.get("relationship_type") and not existing.get("relationship_type"):
-                category["items"][index] = item
-            return
-
-    category["items"].append(item)
-    category["count"] = len(category["items"])
-
-
-def build_decision_relationship_awareness(decision, *, context_objects: list[Any] | None = None) -> dict[str, Any]:
-    """Build a human-readable relationship awareness view for a Decision.
-
-    The result intentionally uses business language. It exposes related objects and impact orientation,
-    not technical graph terms.
+    The structure intentionally uses product language such as related objects and
+    impact instead of technical graph terminology.
     """
-    context_objects = list(context_objects if context_objects is not None else getattr(decision, "context_objects", []))
-    context_by_id = {str(context_object.id): context_object for context_object in context_objects}
+    context_objects = list(getattr(decision, "context_objects", []) or [])
+    objects_by_id = {str(obj.id): obj for obj in context_objects}
     related_objects = _empty_related_objects()
+    seen_by_category: dict[str, set[str]] = {key: set() for key in related_objects}
     influenced_by: list[dict[str, Any]] = []
     influences: list[dict[str, Any]] = []
+    seen_influenced_by: set[str] = set()
+    seen_influences: set[str] = set()
 
-    for context_object in context_objects:
-        source_item = _context_object_item(context_object, direction="influenced_by")
-        _add_related_item(related_objects, source_item)
-        influenced_by.append(source_item)
+    def add_related(obj, relationship: dict[str, Any] | None = None):
+        mapping = _object_label(getattr(obj, "context_type", None))
+        if mapping is None:
+            return
+        key, _label = mapping
+        object_id = str(getattr(obj, "id", ""))
+        if not object_id or object_id in seen_by_category[key]:
+            return
+        related_objects[key]["items"].append(_awareness_item(obj, relationship))
+        seen_by_category[key].add(object_id)
+        related_objects[key]["count"] = len(related_objects[key]["items"])
 
-        for relationship in list_context_relationships(context_object):
-            target_id = str(relationship.get("target_context_id") or "")
-            target_type = relationship.get("target_context_type") or "context"
-            target = context_by_id.get(target_id)
-            if target is not None:
-                target_item = _context_object_item(target, relationship=relationship, direction="influences")
-            else:
-                target_item = {
-                    "id": target_id,
-                    "name": relationship.get("target_label") or relationship.get("target_name") or target_id,
-                    "description": relationship.get("reason"),
-                    "context_type": target_type,
-                    "type_label": target_type.replace("_", " ").title(),
-                    "owner": None,
-                    "confidence": relationship.get("confidence"),
-                    "source": None,
-                    "metadata": {},
-                    "relationship_label": relationship.get("label"),
-                    "relationship_reason": relationship.get("reason"),
-                    "relationship_confidence": relationship.get("confidence"),
-                    "relationship_type": relationship.get("type"),
-                    "direction": "influences",
-                    "detail_url": None,
-                }
-            _add_related_item(related_objects, target_item)
-            influences.append(target_item)
+    def add_impact(target_list: list[dict[str, Any]], seen: set[str], obj, relationship: dict[str, Any] | None = None):
+        object_id = str(getattr(obj, "id", ""))
+        if not object_id or object_id in seen:
+            return
+        target_list.append(_awareness_item(obj, relationship))
+        seen.add(object_id)
 
-    for scenario in getattr(decision, "scenarios", []) or []:
-        item = _generic_item(scenario, "scenario", direction="influences")
-        _add_related_item(related_objects, item)
-        influences.append(item)
+    for obj in context_objects:
+        add_related(obj)
+        add_impact(influenced_by, seen_influenced_by, obj)
 
-    for observation in getattr(decision, "observation_records", []) or []:
-        item = _generic_item(observation, "observation", direction="influences")
-        _add_related_item(related_objects, item)
-        influences.append(item)
-
-    for approval in getattr(decision, "approval_records", []) or []:
-        item = _generic_item(approval, "governance", direction="influenced_by")
-        _add_related_item(related_objects, item)
-        influenced_by.append(item)
+    for source in context_objects:
+        for relationship in list_context_relationships(source):
+            target = objects_by_id.get(str(relationship.get("target_context_id")))
+            if target is None:
+                continue
+            add_related(target, relationship)
+            add_impact(influences, seen_influences, target, relationship)
 
     return {
         "related_objects": related_objects,
@@ -271,49 +200,21 @@ def build_decision_relationship_awareness(decision, *, context_objects: list[Any
             "influenced_by": influenced_by,
             "influences": influences,
         },
-        "summary_counts": {key: category["count"] for key, category in related_objects.items()},
-        "total_related_objects": sum(category["count"] for category in related_objects.values()),
     }
 
 
-def build_context_related_objects(context_object, *, all_context_objects: list[Any] | None = None) -> dict[str, Any]:
-    all_context_objects = list(all_context_objects or [])
-    context_by_id = {str(obj.id): obj for obj in all_context_objects}
-    related_objects = _empty_related_objects()
-
+def build_context_related_objects(context_object, decision=None) -> dict[str, Any]:
+    objects = list(getattr(decision, "context_objects", []) or []) if decision is not None else []
+    objects_by_id = {str(obj.id): obj for obj in objects}
+    related = []
+    seen: set[str] = set()
     for relationship in list_context_relationships(context_object):
-        target_id = str(relationship.get("target_context_id") or "")
-        target = context_by_id.get(target_id)
-        if target is not None:
-            item = _context_object_item(target, relationship=relationship, direction="influences")
-        else:
-            target_type = relationship.get("target_context_type") or "context"
-            item = {
-                "id": target_id,
-                "name": relationship.get("target_label") or relationship.get("target_name") or target_id,
-                "description": relationship.get("reason"),
-                "context_type": target_type,
-                "type_label": target_type.replace("_", " ").title(),
-                "owner": None,
-                "confidence": relationship.get("confidence"),
-                "source": None,
-                "metadata": {},
-                "relationship_label": relationship.get("label"),
-                "relationship_reason": relationship.get("reason"),
-                "relationship_confidence": relationship.get("confidence"),
-                "relationship_type": relationship.get("type"),
-                "direction": "influences",
-                "detail_url": None,
-            }
-        _add_related_item(related_objects, item)
-
-    return {
-        "context_id": str(context_object.id),
-        "related_objects": related_objects,
-        "summary_counts": {key: category["count"] for key, category in related_objects.items()},
-        "total_related_objects": sum(category["count"] for category in related_objects.values()),
-    }
-
-
-def detect_context_conflicts(relationships) -> list[dict[str, Any]]:
-    return []
+        target = objects_by_id.get(str(relationship.get("target_context_id")))
+        if target is None:
+            continue
+        target_id = str(target.id)
+        if target_id in seen:
+            continue
+        related.append(_awareness_item(target, relationship))
+        seen.add(target_id)
+    return {"context_id": str(context_object.id), "related_objects": related, "count": len(related)}

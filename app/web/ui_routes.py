@@ -13,10 +13,7 @@ from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
 from app.domains.context.context_relationship_config import list_active_relationship_types
 from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
-from app.domains.context.context_relationship_service import (
-    build_decision_relationship_awareness,
-    summarize_context_relationships,
-)
+from app.domains.context.context_relationship_service import summarize_context_relationships, build_decision_relationship_awareness
 from app.domains.context.models import DecisionContextObject
 from app.domains.context.service import DecisionContextService
 from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFIDENCE_VALUES
@@ -461,9 +458,56 @@ def _observation_context(decision: Decision) -> dict:
     }
 
 
+
+def _decision_workspace_header(decision: Decision) -> dict:
+    metadata = getattr(decision, "metadata_json", None) or {}
+    return {
+        "title": decision.title,
+        "status": decision.status,
+        "created_at": decision.created_at,
+        "decided_at": metadata.get("decided_at"),
+        "review_date": metadata.get("review_date") or metadata.get("reassessment_date"),
+        "owner": metadata.get("owner") or metadata.get("responsible_person") or metadata.get("responsible_role") or decision.created_by,
+        "confidence": _decision_confidence(decision),
+        "governance_status": _governance_state(decision),
+    }
+
+
+def _expected_future(decision: Decision, rows: list[dict]) -> dict:
+    assumptions = [
+        _context_object_view_model(obj)
+        for obj in decision.context_objects
+        if obj.context_type == "assumption"
+    ]
+    impact_rows = [row for row in rows if row.get("impact")]
+    return {
+        "scenarios": _scenario_rows(decision),
+        "assumptions": assumptions,
+        "impact_rows": impact_rows,
+        "has_expected_future": bool(decision.scenarios or assumptions or impact_rows),
+    }
+
+
+def _reassessment_workspace(decision: Decision) -> dict:
+    metadata = getattr(decision, "metadata_json", None) or {}
+    observations = _observation_records(decision)
+    assumptions_to_review = [
+        _context_object_view_model(obj)
+        for obj in decision.context_objects
+        if obj.context_type == "assumption" and (obj.metadata_json or {}).get("review_required")
+    ]
+    return {
+        "review_date": metadata.get("review_date") or metadata.get("reassessment_date"),
+        "assumptions_to_review": assumptions_to_review,
+        "observations": observations,
+        "latest_observation": observations[0] if observations else None,
+        "has_reassessment": bool(metadata.get("review_date") or metadata.get("reassessment_date") or assumptions_to_review or observations),
+    }
+
 def _workspace_view_model(decision: Decision) -> dict:
     rows = _comparison_rows(decision)
     latest_record = sorted(decision.decision_records, key=lambda record: record.created_at, reverse=True)[0] if decision.decision_records else None
+    relationship_awareness = build_decision_relationship_awareness(decision)
     return {
         "decision": decision,
         "decision_card": _decision_card_view_model(decision),
@@ -476,7 +520,6 @@ def _workspace_view_model(decision: Decision) -> dict:
         "dominant_risk": _dominant_risk_context(decision) or _dominant_risk(decision),
         "risk_contexts": [_risk_context_view_model(obj) for obj in _risk_contexts(decision)],
         "process_contexts": [_process_context_view_model(obj) for obj in _process_contexts(decision)],
-        "relationship_awareness": build_decision_relationship_awareness(decision),
         "process_taxonomy": get_process_taxonomy().as_dict(),
         "governance_status": _governance_state(decision),
         "status_sequence": STATUS_SEQUENCE,
@@ -484,6 +527,10 @@ def _workspace_view_model(decision: Decision) -> dict:
         "status_transition_actions": _status_transition_actions(decision),
         "has_simulations": any(row["simulation"] for row in rows),
         "has_impacts": any(row["impact"] for row in rows),
+        "relationship_awareness": relationship_awareness,
+        "decision_workspace_header": _decision_workspace_header(decision),
+        "expected_future": _expected_future(decision, rows),
+        "reassessment_workspace": _reassessment_workspace(decision),
     }
 
 

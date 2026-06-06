@@ -1,0 +1,20 @@
+<section id="decision-reassessment-foundation" class="section">
+  <div class="section-heading compact-heading">
+    <div>
+      <div class="eyebrow">{{ t('decision_workspace.reassessment') }}</div>
+      <h2>{{ t('decision_workspace.reassessment') }}</h2>
+      <p class="muted">{{ t('decision_workspace.reassessment_help') }}</p>
+    </div>
+  </div>
+  {% if reassessment_workspace.has_reassessment %}
+    <div class="grid three">
+      <div class="card compact"><h3>{{ t('decision_workspace.review_date') }}</h3><p>{{ reassessment_workspace.review_date or '—' }}</p></div>
+      <div class="card compact"><h3>{{ t('decision_workspace.assumptions') }}</h3><p>{{ reassessment_workspace.assumptions_to_review|length }}</p></div>
+      <div class="card compact"><h3>{{ t('decision_workspace.observed_reality') }}</h3><p>{{ reassessment_workspace.observations|length }}</p></div>
+    </div>
+  {% else %}
+    {% set title = t('decision_workspace.reassessment') %}
+    {% set text = t('decision_workspace.no_reassessment_defined') %}
+    {% include 'components/empty_state.html' %}
+  {% endif %}
+</section>

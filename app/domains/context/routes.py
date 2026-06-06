@@ -72,8 +72,6 @@ def decision_context_relationships(decision_id):
         })
 
 
-
-
 @bp.get("/decisions/<decision_id>/relationship-awareness")
 def decision_relationship_awareness(decision_id):
     with session_scope() as session:
