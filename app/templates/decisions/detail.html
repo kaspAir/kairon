@@ -1,7 +1,40 @@
 {% extends 'base.html' %}
 {% block title %}KAIRON · {{ decision.title }}{% endblock %}
 {% block content %}
-{% include 'partials/decision_story_header.html' %}
+<section>
+  <div class="eyebrow">{{ t('decision_narrative.workspace.eyebrow') }}</div>
+  <div class="toolbar">
+    <div>
+      <h1>{{ decision.title }}</h1>
+      <p class="lead">{{ decision.context or t('decision_narrative.why.empty') }}</p>
+    </div>
+    <div class="actions">
+      {% set status = governance_status %}{% include 'components/status_badge.html' %}
+      <a class="btn secondary" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">{{ t('decision_narrative.link.compare') }}</a>
+      <a class="btn ghost" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">{{ t('decision_narrative.link.record') }}</a>
+    </div>
+  </div>
+</section>
+
+{% include 'partials/decision_brief.html' %}
+
+<div class="narrative-primary">
+  {% include 'partials/decision_narrative_why.html' %}
+  {% include 'partials/decision_narrative_circumstances.html' %}
+  {% include 'partials/decision_narrative_options.html' %}
+  {% include 'partials/decision_narrative_future.html' %}
+  {% include 'partials/decision_narrative_reassessment.html' %}
+</div>
+
+<section class="section">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">{{ t('decision_narrative.detail_disclosure.title') }}</div>
+      <p class="muted">{{ t('decision_narrative.detail_disclosure.text') }}</p>
+    </div>
+  </div>
+</section>
+
 <nav class="tabs" aria-label="Workspace Tabs">
   <a class="tab active" href="#overview">Overview</a>
   <a class="tab" href="#lifecycle">Lifecycle</a>
@@ -18,11 +51,6 @@
   <a class="tab" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">Decision Record</a>
 </nav>
 
-
-{% include 'partials/decision_context.html' %}
-{% include 'partials/expected_future.html' %}
-{% include 'partials/impact_map.html' %}
-{% include 'partials/reassessment_panel.html' %}
 <section id="overview" class="grid three section">
   <div class="card compact"><h3>Variants</h3><div class="metric-value">{{ decision.variants|length }}</div></div>
   <div class="card compact"><h3>Scenarios</h3><div class="metric-value">{{ decision.scenarios|length }}</div></div>

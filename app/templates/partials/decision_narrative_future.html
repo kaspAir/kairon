@@ -1,0 +1,28 @@
+<section id="narrative-future" class="section narrative-section">
+  <div class="card narrative-card">
+    <div class="eyebrow">{{ t('decision_narrative.expected_future.kicker') }}</div>
+    <h2>{{ t('decision_narrative.expected_future.title') }}</h2>
+    {% set future = decision_narrative.expected_future %}
+    {% if future.assumptions or future.metrics or future.scenarios %}
+      <div class="narrative-grid three">
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.expected_future.assumptions') }}</h3>
+          {% set items = future.assumptions %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.expected_future.metrics') }}</h3>
+          {% set items = future.metrics %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.expected_future.scenarios') }}</h3>
+          {% set items = future.scenarios %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+      </div>
+    {% else %}
+      <div class="narrative-empty">{{ t('decision_narrative.expected_future.empty') }}</div>
+    {% endif %}
+  </div>
+</section>

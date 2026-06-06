@@ -1,0 +1,33 @@
+<section id="decision-brief" class="decision-narrative-hero section">
+  <div class="card narrative-card narrative-brief">
+    <div class="eyebrow">{{ t('decision_narrative.brief.title') }}</div>
+    <div class="narrative-brief-grid">
+      <div>
+        <h2>{{ decision.title }}</h2>
+        {% if decision_narrative.brief %}
+          <div class="narrative-brief-text">
+            {% for paragraph in decision_narrative.brief %}
+              <p>{{ paragraph }}</p>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="muted">{{ t('decision_narrative.brief.empty') }}</p>
+        {% endif %}
+      </div>
+      <aside class="narrative-orientation">
+        <div>
+          <span>{{ t('decision_narrative.first_screen.options') }}</span>
+          <strong>{{ decision_narrative.first_screen.option_count }}</strong>
+        </div>
+        <div>
+          <span>{{ t('decision_narrative.first_screen.risks') }}</span>
+          <strong>{{ decision_narrative.first_screen.risk_count }}</strong>
+        </div>
+        <div>
+          <span>{{ t('decision_narrative.first_screen.review') }}</span>
+          <strong>{{ status_labels.get(decision_narrative.first_screen.review_status, decision_narrative.first_screen.review_status|replace('_', ' ')|title) }}</strong>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,23 @@
+<section id="narrative-reassessment" class="section narrative-section">
+  <div class="card narrative-card">
+    <div class="eyebrow">{{ t('decision_narrative.reassessment.kicker') }}</div>
+    <h2>{{ t('decision_narrative.reassessment.title') }}</h2>
+    {% set reassessment = decision_narrative.reassessment %}
+    {% if reassessment.observations or reassessment.review_points %}
+      <div class="narrative-grid two">
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.reassessment.observations') }}</h3>
+          {% set items = reassessment.observations %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.reassessment.open_points') }}</h3>
+          {% set items = reassessment.review_points %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+      </div>
+    {% else %}
+      <div class="narrative-empty">{{ t('decision_narrative.reassessment.empty') }}</div>
+    {% endif %}
+  </div>
+</section>

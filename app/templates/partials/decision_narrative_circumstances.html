@@ -1,0 +1,28 @@
+<section id="narrative-circumstances" class="section narrative-section">
+  <div class="card narrative-card">
+    <div class="eyebrow">{{ t('decision_narrative.circumstances.kicker') }}</div>
+    <h2>{{ t('decision_narrative.circumstances.title') }}</h2>
+    {% set circumstances = decision_narrative.circumstances %}
+    {% if circumstances.key_context or circumstances.risks %}
+      <div class="narrative-grid three">
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.circumstances.processes') }}</h3>
+          {% set items = circumstances.processes %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.circumstances.risks') }}</h3>
+          {% set items = circumstances.risks %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+        <div class="narrative-column">
+          <h3>{{ t('decision_narrative.circumstances.constraints') }}</h3>
+          {% set items = circumstances.constraints + circumstances.roles + circumstances.external_factors %}
+          {% include 'partials/narrative_item_list.html' %}
+        </div>
+      </div>
+    {% else %}
+      <div class="narrative-empty">{{ t('decision_narrative.circumstances.empty') }}</div>
+    {% endif %}
+  </div>
+</section>

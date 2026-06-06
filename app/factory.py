@@ -14,6 +14,7 @@ from app.web.routes import api as core_bp
 from app.web.ui_routes import bp as ui_bp
 from app.demo.seed import seed_golden_demo
 from app.shared.database import session_scope
+from app.shared.i18n import t
 
 
 def create_app(config_class=None):
@@ -37,6 +38,10 @@ def create_app(config_class=None):
             decision = seed_golden_demo(session)
             app.logger.info("Golden demo seed available", extra={"decision_id": decision.id})
         print("Golden demo seed available")
+
+    @app.context_processor
+    def inject_i18n():
+        return {"t": t}
 
     @app.teardown_appcontext
     def remove_session(exception=None):

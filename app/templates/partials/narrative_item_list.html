@@ -1,0 +1,13 @@
+{% if items %}
+  <ul class="narrative-list">
+    {% for item in items %}
+      <li>
+        <strong>{{ item.title }}</strong>
+        {% if item.type_label %}<span class="muted"> · {{ item.type_label }}</span>{% endif %}
+        {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="narrative-empty small">{{ t('decision_narrative.not_defined') }}</div>
+{% endif %}

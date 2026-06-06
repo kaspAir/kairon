@@ -1,0 +1,11 @@
+<section id="narrative-why" class="section narrative-section">
+  <div class="card narrative-card">
+    <div class="eyebrow">{{ t('decision_narrative.why.kicker') }}</div>
+    <h2>{{ t('decision_narrative.why.title') }}</h2>
+    {% if decision_narrative.why.description %}
+      <p class="lead compact-lead">{{ decision_narrative.why.description }}</p>
+    {% else %}
+      <div class="narrative-empty">{{ t('decision_narrative.why.empty') }}</div>
+    {% endif %}
+  </div>
+</section>

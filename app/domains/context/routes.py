@@ -9,11 +9,12 @@ from app.domains.context.schemas import (
     RiskContextCreateSchema,
     RiskContextResponseSchema,
 )
-from app.domains.context.context_relationship_config import list_active_relationship_types
 from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
+from app.domains.decision.decision_narrative_service import build_relationship_awareness
 from app.shared.database import session_scope
+from app.domains.decision.models import Decision
 from app.shared.schemas import load_json
 
 from app.domains.context.link_config import context_link_config_view_model
@@ -25,76 +26,25 @@ def payload():
     return request.get_json(silent=True) or {}
 
 
-
-
-@bp.get("/context/relationships/types")
-def list_context_relationship_types():
-    return jsonify({
-        "relationship_types": [
-            relationship_type.as_dict()
-            for relationship_type in list_active_relationship_types()
-        ]
-    })
-
-
-@bp.post("/context/<context_object_id>/relationships")
-def create_context_relationship(context_object_id):
-    data = payload()
-    relationship_type = data.get("type")
-    target_context_id = data.get("target_context_id")
-
-    if not relationship_type:
-        return jsonify({"error": {"code": "validation_error", "message": "type is required", "status": 400}}), 400
-    if not target_context_id:
-        return jsonify({"error": {"code": "validation_error", "message": "target_context_id is required", "status": 400}}), 400
-
-    with session_scope() as session:
-        relationship = DecisionContextService(session).add_context_relationship(
-            context_object_id,
-            relationship_type=relationship_type,
-            target_context_id=target_context_id,
-            target_context_type=data.get("target_context_type"),
-            label=data.get("label"),
-            reason=data.get("reason"),
-            confidence=data.get("confidence"),
-            extra=data.get("extra"),
-        )
-        return jsonify({"relationship": relationship}), 201
-
-
-@bp.get("/decisions/<decision_id>/context-relationships")
-def decision_context_relationships(decision_id):
-    with session_scope() as session:
-        service = DecisionContextService(session)
-        return jsonify({
-            "decision_id": decision_id,
-            "summary": service.summarize_context_relationships(decision_id),
-        })
-
-
-@bp.get("/decisions/<decision_id>/relationship-awareness")
-def decision_relationship_awareness(decision_id):
-    with session_scope() as session:
-        service = DecisionContextService(session)
-        return jsonify({
-            "decision_id": decision_id,
-            "relationship_awareness": service.relationship_awareness_for_decision(decision_id),
-        })
-
-
-@bp.get("/context/<context_object_id>/related-objects")
-def context_related_objects(context_object_id):
-    with session_scope() as session:
-        service = DecisionContextService(session)
-        return jsonify(service.related_objects_for_context(context_object_id))
-
-
 @bp.get("/decisions/<decision_id>/context-objects")
 def list_context_objects(decision_id):
     with session_scope() as session:
         objects = DecisionContextService(session).list_context_objects(decision_id)
         return jsonify(DecisionContextObjectResponseSchema(many=True).dump(objects))
 
+
+
+
+@bp.get("/decisions/<decision_id>/relationship-awareness")
+def decision_relationship_awareness(decision_id):
+    with session_scope() as session:
+        decision = session.get(Decision, decision_id)
+        if decision is None:
+            return jsonify({"error": "Decision not found"}), 404
+        return jsonify({
+            "decision_id": decision.id,
+            "relationship_awareness": build_relationship_awareness(decision),
+        })
 
 @bp.post("/decisions/<decision_id>/context-objects")
 def create_context_object(decision_id):

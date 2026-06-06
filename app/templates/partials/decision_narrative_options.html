@@ -1,0 +1,34 @@
+<section id="narrative-options" class="section narrative-section">
+  <div class="card narrative-card">
+    <div class="eyebrow">{{ t('decision_narrative.options.kicker') }}</div>
+    <h2>{{ t('decision_narrative.options.title') }}</h2>
+    {% set options = decision_narrative.options %}
+    {% if options.variants or options.scenarios %}
+      <div class="narrative-grid three">
+        {% for variant in options.variants %}
+          <article class="narrative-option">
+            <h3>{{ variant.title }}</h3>
+            {% if variant.description %}<p>{{ variant.description }}</p>{% endif %}
+            {% if variant.scenarios %}
+              <ul>
+                {% for scenario in variant.scenarios %}
+                  <li><strong>{{ scenario.title }}</strong>{% if scenario.description %}<br><span>{{ scenario.description }}</span>{% endif %}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </article>
+        {% endfor %}
+        {% if not options.variants %}
+          {% for scenario in options.scenarios %}
+            <article class="narrative-option">
+              <h3>{{ scenario.title }}</h3>
+              {% if scenario.description %}<p>{{ scenario.description }}</p>{% endif %}
+            </article>
+          {% endfor %}
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="narrative-empty">{{ t('decision_narrative.options.empty') }}</div>
+    {% endif %}
+  </div>
+</section>
