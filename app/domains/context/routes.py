@@ -1,5 +1,8 @@
+from dataclasses import asdict
+
 from flask import Blueprint, jsonify, request
 
+from app.domains.context.context_relationship_config import list_active_relationship_types
 from app.domains.context.schemas import (
     DecisionContextObjectCreateSchema,
     DecisionContextObjectResponseSchema,
@@ -12,9 +15,7 @@ from app.domains.context.schemas import (
 from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
-from app.domains.decision.decision_narrative_service import build_relationship_awareness
 from app.shared.database import session_scope
-from app.domains.decision.models import Decision
 from app.shared.schemas import load_json
 
 from app.domains.context.link_config import context_link_config_view_model
@@ -26,25 +27,82 @@ def payload():
     return request.get_json(silent=True) or {}
 
 
+@bp.get("/context/relationships/types")
+def context_relationship_types():
+    return jsonify({
+        "relationship_types": [
+            asdict(relationship_type)
+            for relationship_type in list_active_relationship_types()
+        ]
+    })
+
+
+@bp.post("/context/<context_object_id>/relationships")
+def create_context_relationship(context_object_id):
+    data = payload()
+    relationship_type = data.get("type") or data.get("relationship_type")
+    target_context_id = data.get("target_context_id")
+
+    if not relationship_type:
+        return jsonify({"error": "type is required"}), 400
+    if not target_context_id:
+        return jsonify({"error": "target_context_id is required"}), 400
+
+    try:
+        with session_scope() as session:
+            relationship = DecisionContextService(session).add_context_relationship(
+                context_object_id=context_object_id,
+                relationship_type=relationship_type,
+                target_context_id=target_context_id,
+                target_context_type=data.get("target_context_type"),
+                label=data.get("label"),
+                reason=data.get("reason"),
+                confidence=data.get("confidence"),
+                extra=data.get("extra"),
+            )
+            return jsonify({"relationship": relationship}), 201
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.get("/decisions/<decision_id>/context-relationships")
+def decision_context_relationships(decision_id):
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        return jsonify({
+            "decision_id": decision_id,
+            "summary": service.summarize_context_relationships(decision_id),
+        })
+
+
+@bp.get("/decisions/<decision_id>/relationship-awareness")
+def decision_relationship_awareness(decision_id):
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        try:
+            awareness = service.relationship_awareness_for_decision(decision_id)
+        except Exception:
+            # Preserve existing error handling semantics through registered handlers
+            raise
+        return jsonify({
+            "decision_id": decision_id,
+            "relationship_awareness": awareness,
+        })
+
+
+@bp.get("/context/<context_object_id>/related-objects")
+def context_related_objects(context_object_id):
+    with session_scope() as session:
+        service = DecisionContextService(session)
+        return jsonify(service.related_objects_for_context(context_object_id))
+
+
 @bp.get("/decisions/<decision_id>/context-objects")
 def list_context_objects(decision_id):
     with session_scope() as session:
         objects = DecisionContextService(session).list_context_objects(decision_id)
         return jsonify(DecisionContextObjectResponseSchema(many=True).dump(objects))
 
-
-
-
-@bp.get("/decisions/<decision_id>/relationship-awareness")
-def decision_relationship_awareness(decision_id):
-    with session_scope() as session:
-        decision = session.get(Decision, decision_id)
-        if decision is None:
-            return jsonify({"error": "Decision not found"}), 404
-        return jsonify({
-            "decision_id": decision.id,
-            "relationship_awareness": build_relationship_awareness(decision),
-        })
 
 @bp.post("/decisions/<decision_id>/context-objects")
 def create_context_object(decision_id):
@@ -110,7 +168,8 @@ def delete_context_object(context_object_id):
     with session_scope() as session:
         DecisionContextService(session).delete_context_object(context_object_id)
         return "", 204
-    
+
+
 @bp.get("/process-landscape")
 def process_landscape():
     with session_scope() as session:
@@ -124,4 +183,3 @@ def process_landscape():
             "grouped": grouped,
             "context_link_config": context_link_config_view_model(),
         })
-

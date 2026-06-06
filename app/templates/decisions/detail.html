@@ -35,6 +35,19 @@
   </div>
 </section>
 
+<section id="relationship-awareness" class="section narrative-supporting-foundation">
+  <div class="section-heading compact-heading">
+    <div>
+      <div class="eyebrow">{{ t('decision_workspace.context') }}</div>
+      <h2>{{ t('decision_workspace.related_objects') }}</h2>
+      <p class="muted">{{ t('decision_workspace.context_help') }}</p>
+    </div>
+  </div>
+  {% include 'partials/related_objects.html' %}
+</section>
+
+{% include 'partials/impact_map.html' %}
+
 <nav class="tabs" aria-label="Workspace Tabs">
   <a class="tab active" href="#overview">Overview</a>
   <a class="tab" href="#lifecycle">Lifecycle</a>

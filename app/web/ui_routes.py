@@ -10,6 +10,8 @@ from flask import Blueprint, current_app, redirect, render_template, request, ur
 
 from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
+from app.domains.context.context_relationship_config import list_active_relationship_types
+from app.domains.context.context_relationship_service import summarize_context_relationships, build_decision_relationship_awareness
 from app.domains.context.process_config import get_process_taxonomy
 from app.domains.context.risk_config import get_risk_taxonomy
 from app.domains.context.service import DecisionContextService
@@ -478,6 +480,7 @@ def _workspace_view_model(decision: Decision) -> dict:
         "status_transition_actions": _status_transition_actions(decision),
         "has_simulations": any(row["simulation"] for row in rows),
         "has_impacts": any(row["impact"] for row in rows),
+        "relationship_awareness": build_decision_relationship_awareness(decision),
         "decision_narrative": build_decision_narrative(decision),
     }
 
@@ -838,6 +841,19 @@ def create_record(decision_id):
     with session_scope() as session:
         GovernanceService(session).create_decision_record(decision_id, created_by=_created_by())
     return redirect(url_for("ui.decision_record", decision_id=decision_id, message="Decision record generated", level="success"))
+
+@bp.get("/context-relationships")
+def context_relationships():
+    with session_scope() as session:
+        all_context_objects = session.query(DecisionContextObject).order_by(DecisionContextObject.created_at.desc()).all()
+        return render_template(
+            "context_relationships.html",
+            active_nav="processes",
+            message=_message(),
+            relationship_types=list_active_relationship_types(),
+            relationship_summary=summarize_context_relationships(all_context_objects),
+        )
+
 
 @bp.get("/process-landscape")
 def process_landscape():
