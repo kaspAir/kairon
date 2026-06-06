@@ -544,6 +544,11 @@ def _workspace_view_model(decision: Decision) -> dict:
             "options": {},
             "expected_future": {},
             "reassessment": {},
+            "first_screen": {
+                "option_count": len(decision.variants) + len(decision.scenarios),
+                "risk_count": len(_risk_contexts(decision)) or len(decision.risk_assessments),
+                "review_status": _pending_governance_state(decision),
+            },
         },
         "t": translate,
     }
