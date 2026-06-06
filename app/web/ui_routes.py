@@ -32,6 +32,8 @@ from app.shared.errors import NotFoundError
 
 from app.domains.context.link_config import context_link_config_view_model
 
+from app.domains.context.models import DecisionContextObject
+
 bp = Blueprint("ui", __name__, url_prefix="/ui")
 
 STATUS_SEQUENCE = tuple(status.value for status in DECISION_STATUS_DEFINITIONS)
