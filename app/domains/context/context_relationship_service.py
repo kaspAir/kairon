@@ -98,7 +98,7 @@ def summarize_context_relationships(context_objects) -> list[dict[str, Any]]:
 def detect_context_conflicts(relationships) -> list[dict[str, Any]]:
     return []
 
-<<<<<<< Updated upstream
+
 _RELATED_OBJECT_CATEGORIES = {
     "process": ("processes", "Related Processes"),
     "risk": ("risks", "Related Risks"),
@@ -118,7 +118,7 @@ _DEFAULT_RELATED_OBJECTS = (
     ("observations", "Related Observations"),
     ("governance_objects", "Related Governance Objects"),
 )
-=======
+
 from typing import Any
 from uuid import uuid4
 
@@ -133,15 +133,15 @@ def _metadata(context_object) -> dict[str, Any]:
         metadata = {}
     context_object.metadata_json = metadata
     return metadata
->>>>>>> Stashed changes
+
 
 
 def _object_label(context_type: str) -> tuple[str, str] | None:
     return _RELATED_OBJECT_CATEGORIES.get((context_type or "").strip().lower())
 
 
-<<<<<<< Updated upstream
-=======
+
+
 def add_context_relationship(
     context_object,
     *,
@@ -240,7 +240,7 @@ def _object_label(context_type: str) -> tuple[str, str] | None:
     return _RELATED_OBJECT_CATEGORIES.get((context_type or "").strip().lower())
 
 
->>>>>>> Stashed changes
+
 def _awareness_item(context_object, relationship: dict[str, Any] | None = None) -> dict[str, Any]:
     metadata = getattr(context_object, "metadata_json", None) or {}
     item = {
@@ -311,14 +311,11 @@ def build_decision_relationship_awareness(decision) -> dict[str, Any]:
                 continue
             add_related(target, relationship)
             add_impact(influences, seen_influences, target, relationship)
-<<<<<<< Updated upstream
-=======
 
     summary_counts = {
         key: value.get("count", 0)
         for key, value in related_objects.items()
     }
->>>>>>> Stashed changes
 
     return {
         "related_objects": related_objects,
