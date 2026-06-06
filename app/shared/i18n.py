@@ -75,7 +75,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "decision_workspace.related_governance_objects": "Related Governance Objects",
         "decision_workspace.no_related_objects": "No related objects have been documented yet.",
         "decision_workspace.no_scenarios": "No scenarios or explicit future assumptions have been documented yet.",
-        "decision_workspace.no_reassessment_defined": "No reassessment has been defined yet.",
+        "decision_workspace.no_reassessment": "No reassessment has been defined yet.",
         "decision_workspace.no_decision_rationale": "No decision rationale has been documented yet.",
         "decision_workspace.influenced_by": "This decision is influenced by",
         "decision_workspace.influences": "This decision influences",
