@@ -381,3 +381,19 @@ details summary { cursor: pointer; font-weight: 850; color: var(--color-primary)
 @media (max-width: 980px) {
   .narrative-brief-grid, .narrative-grid.two, .narrative-grid.three { grid-template-columns: 1fr; }
 }
+
+/* Decision Insight Summary Foundation */
+.decision-insight-summary { margin-top: var(--spacing-lg); }
+.insight-card { background: linear-gradient(135deg, #ffffff 0%, #f7fbff 100%); }
+.insight-summary-block { border: 1px solid var(--color-border); border-radius: 18px; background: #fff; padding: var(--spacing-md); margin: var(--spacing-md) 0; }
+.insight-summary-block h3 { margin-top: 0; }
+.insight-grid { margin-top: var(--spacing-md); }
+.compact-list { margin: .4rem 0 0; padding-left: 1.1rem; }
+.compact-list li { margin-bottom: .45rem; }
+.muted-list { color: var(--color-muted); }
+.insight-note { border-left: 3px solid var(--color-secondary); padding-left: var(--spacing-sm); }
+.insight-levers { border: 1px solid var(--color-border); border-radius: 18px; background: #fff; margin-top: var(--spacing-md); padding: var(--spacing-md); }
+.insight-levers summary { color: var(--color-primary); cursor: pointer; font-weight: 800; }
+.insight-lever-form { margin-top: var(--spacing-md); }
+.lever-field label { display: block; font-size: .82rem; font-weight: 750; color: var(--color-muted); margin-bottom: .35rem; }
+.lever-field input, .lever-field select { width: 100%; }

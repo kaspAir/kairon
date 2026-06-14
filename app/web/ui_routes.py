@@ -20,6 +20,7 @@ from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFID
 from app.domains.assessment.service import RiskAssessmentService
 from app.domains.decision.models import Decision
 from app.domains.decision.service import DecisionService
+from app.domains.decision.decision_insight_service import build_decision_insight_summary
 from app.domains.decision.status import DECISION_STATUS_LABELS, DECISION_STATUS_DEFINITIONS, allowed_next_statuses, normalize_decision_status
 from app.domains.governance.models import ApprovalRecord
 from app.domains.governance.service import GovernanceService
@@ -510,6 +511,23 @@ def _reassessment_workspace(decision: Decision) -> dict:
         "has_reassessment": bool(metadata.get("review_date") or metadata.get("reassessment_date") or assumptions_to_review or observations),
     }
 
+def _decision_insight_adjustments() -> dict:
+    return {
+        key: request.args.get(f"insight_{key}")
+        for key in (
+            "estimated_cost",
+            "expected_benefit",
+            "case_volume",
+            "processing_minutes_per_case",
+            "hourly_cost",
+            "risk_severity",
+            "confidence",
+            "time_horizon_years",
+        )
+        if request.args.get(f"insight_{key}") not in (None, "")
+    }
+
+
 def _workspace_view_model(decision: Decision) -> dict:
     rows = _comparison_rows(decision)
     latest_record = sorted(decision.decision_records, key=lambda record: record.created_at, reverse=True)[0] if decision.decision_records else None
@@ -534,22 +552,11 @@ def _workspace_view_model(decision: Decision) -> dict:
         "has_simulations": any(row["simulation"] for row in rows),
         "has_impacts": any(row["impact"] for row in rows),
         "relationship_awareness": relationship_awareness,
+        "decision_insight": build_decision_insight_summary(decision, adjusted_values=_decision_insight_adjustments()),
         "decision_workspace_header": _decision_workspace_header(decision),
         "expected_future": _expected_future(decision, rows),
         "reassessment_workspace": _reassessment_workspace(decision),
-        "decision_narrative": {
-            "brief": "",
-            "why": {},
-            "circumstances": {},
-            "options": {},
-            "expected_future": {},
-            "reassessment": {},
-            "first_screen": {
-                "option_count": len(decision.variants) + len(decision.scenarios),
-                "risk_count": len(_risk_contexts(decision)) or len(decision.risk_assessments),
-                "review_status": _pending_governance_state(decision),
-            },
-        },
+
         "t": translate,
     }
 
@@ -586,9 +593,6 @@ def load_demo_seed():
 def _render_overview(section: str):
     page = OVERVIEW_PAGES.get(section)
     if page is None:
-        if page is None:
-            if section == "demo-seed":
-                return redirect(url_for("ui.home"))
         raise NotFoundError("Workspace section not found")
     with session_scope() as session:
         decisions = session.query(Decision).order_by(Decision.created_at.desc()).all()

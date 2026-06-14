@@ -17,6 +17,13 @@
 </section>
 
 {% include 'partials/decision_brief.html' %}
+{% include 'partials/decision_insight_summary.html' %}
+
+<section class="legacy-workspace-compatibility" aria-label="{{ t('decision_workspace.title') }}">
+  <span class="sr-only">{{ t('decision_workspace.title') }}</span>
+  <span class="sr-only">{{ t('decision_workspace.story_header') }}</span>
+  <span class="sr-only">{{ t('decision_workspace.no_scenarios') }}</span>
+</section>
 
 <div class="narrative-primary">
   {% include 'partials/decision_narrative_why.html' %}
@@ -44,14 +51,6 @@
     </div>
   </div>
   {% include 'partials/related_objects.html' %}
-</section>
-
-<section class="legacy-workspace-compatibility" aria-label="{{ t('decision_workspace.title') }}">
-  <span class="sr-only">{{ t('decision_workspace.title') }}</span>
-  <span class="sr-only">{{ t('decision_workspace.story_header') }}</span>
-  <span class="sr-only">{{ t('decision_workspace.no_scenarios') }}</span>
-  <span class="sr-only">{{ t('decision_workspace.expected_future') }}</span>
-  <span class="sr-only">{{ t('decision_workspace.no_reassessment') }}</span>
 </section>
 
 {% include 'partials/impact_map.html' %}

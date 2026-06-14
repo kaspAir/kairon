@@ -1,0 +1,101 @@
+<section id="decision-insight-summary" class="section decision-insight-summary" aria-label="{{ t('decision_insight.title') }}">
+  <div class="card narrative-card insight-card">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">{{ t('decision_insight.eyebrow') }}</div>
+        <h2>{{ t('decision_insight.title') }}</h2>
+        <p class="muted">{{ t('decision_insight.help') }}</p>
+      </div>
+      <div class="metric-pill">{{ decision_insight.readiness.label }}</div>
+    </div>
+
+    <div class="insight-summary-block">
+      <h3>{{ t('decision_insight.current_understanding') }}</h3>
+      <p>{{ decision_insight.summary }}</p>
+    </div>
+
+    <div class="grid two insight-grid">
+      <div class="card compact secondary-panel">
+        <h3>{{ t('decision_insight.readiness') }}</h3>
+        <p><strong>{{ decision_insight.readiness.label }}</strong></p>
+        {% if decision_insight.readiness.reasons %}
+          <ul class="compact-list">
+            {% for reason in decision_insight.readiness.reasons %}
+              <li>{{ reason }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if decision_insight.readiness.missing %}
+          <p class="muted">{{ t('decision_insight.missing_information') }}</p>
+          <ul class="compact-list muted-list">
+            {% for missing in decision_insight.readiness.missing %}
+              <li>{{ missing }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="card compact secondary-panel">
+        <h3>{{ t('decision_insight.next_step') }}</h3>
+        <p><strong>{{ decision_insight.next_step.label }}</strong></p>
+        <p class="muted">{{ decision_insight.next_step.reason }}</p>
+        {% if decision_insight.strongest_option %}
+          <p class="insight-note"><strong>{{ t('decision_insight.currently_strongest_option') }}:</strong> {{ decision_insight.strongest_option.variant_name }}</p>
+        {% else %}
+          <p class="muted">{{ t('decision_insight.not_enough_data') }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid two insight-grid">
+      <div class="card compact">
+        <h3>{{ t('decision_insight.key_findings') }}</h3>
+        {% if decision_insight.key_findings %}
+          <ul class="compact-list">
+            {% for finding in decision_insight.key_findings %}
+              <li>{{ finding }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          {% set title = t('decision_insight.key_findings') %}{% set text = t('decision_insight.not_enough_data') %}{% include 'components/empty_state.html' %}
+        {% endif %}
+      </div>
+
+      <div class="card compact">
+        <h3>{{ t('decision_insight.consequence_preview') }}</h3>
+        {% if decision_insight.consequence_preview.messages %}
+          <ul class="compact-list">
+            {% for message in decision_insight.consequence_preview.messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          {% set title = t('decision_insight.consequence_preview') %}{% set text = t('decision_insight.not_enough_data') %}{% include 'components/empty_state.html' %}
+        {% endif %}
+      </div>
+    </div>
+
+    <details class="insight-levers">
+      <summary>{{ t('decision_insight.decision_levers') }}</summary>
+      <form method="get" action="{{ url_for('ui.decision_detail', decision_id=decision.id) }}#decision-insight-summary" class="insight-lever-form">
+        <div class="grid three">
+          {% for lever in decision_insight.levers %}
+            <div class="lever-field">
+              <label for="insight_{{ lever.key }}">{{ lever.label }}</label>
+              {% if lever.type == 'select' %}
+                <select id="insight_{{ lever.key }}" name="insight_{{ lever.key }}">
+                  {% for option in lever.options %}
+                    <option value="{{ option }}" {% if option == lever.value %}selected{% endif %}>{{ t('decision_insight.option.' ~ option) }}</option>
+                  {% endfor %}
+                </select>
+              {% else %}
+                <input id="insight_{{ lever.key }}" name="insight_{{ lever.key }}" type="number" step="0.01" value="{{ lever.value }}">
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <button class="btn secondary" type="submit">{{ t('decision_insight.recalculate') }}</button>
+      </form>
+    </details>
+  </div>
+</section>
