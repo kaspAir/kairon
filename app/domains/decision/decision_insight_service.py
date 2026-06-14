@@ -370,3 +370,121 @@ def build_decision_insight_summary(decision: Decision, adjusted_values: dict[str
         "levers": build_decision_levers(decision, adjusted_values=adjusted_values, language=language),
         "consequence_preview": preview_decision_consequences(decision, adjusted_values=adjusted_values, language=language),
     }
+
+
+def _count_risks_by_severity(decision: Decision) -> dict[str, int]:
+    counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+    for risk in getattr(decision, "risk_assessments", []) or []:
+        severity = str(getattr(risk, "severity", "medium") or "medium").lower()
+        counts[severity] = counts.get(severity, 0) + 1
+    for obj in getattr(decision, "context_objects", []) or []:
+        if getattr(obj, "context_type", None) != "risk":
+            continue
+        metadata = getattr(obj, "metadata_json", None) or {}
+        severity = str(metadata.get("severity") or "medium").lower()
+        counts[severity] = counts.get(severity, 0) + 1
+    return counts
+
+
+def _process_count(decision: Decision) -> int:
+    return sum(1 for obj in getattr(decision, "context_objects", []) or [] if getattr(obj, "context_type", None) == "process")
+
+
+def _top_process_name(decision: Decision) -> str | None:
+    for obj in getattr(decision, "context_objects", []) or []:
+        if getattr(obj, "context_type", None) == "process":
+            return getattr(obj, "name", None)
+    return None
+
+
+def _record_exists(decision: Decision) -> bool:
+    return bool(getattr(decision, "decision_records", []) or [])
+
+
+def _approval_open(decision: Decision) -> bool:
+    approvals = list(getattr(decision, "approval_records", []) or [])
+    if not approvals:
+        return True
+    return not any(getattr(approval, "status", "") == "approved" for approval in approvals)
+
+
+def build_decision_briefing_view_model(decision: Decision, insight: dict | None = None, language: str = "de") -> dict:
+    insight = insight or build_decision_insight_summary(decision, language=language)
+    strongest = insight.get("strongest_option")
+    next_step = insight.get("next_step") or {}
+    readiness = insight.get("readiness") or {}
+    risk_counts = _count_risks_by_severity(decision)
+    total_risks = sum(risk_counts.values())
+    simulations = _simulation_count(decision)
+    scenarios = _scenario_count(decision)
+    processes = _process_count(decision)
+    observations = len(getattr(decision, "observation_records", []) or [])
+
+    if strongest:
+        statement = translate(
+            "decision_briefing.statement.with_option",
+            language=language,
+            option=strongest.get("variant_name"),
+        )
+    else:
+        statement = translate("decision_briefing.statement.no_option", language=language)
+
+    if readiness.get("missing"):
+        statement = f"{statement} {translate('decision_briefing.statement.validation_needed', language=language)}"
+
+    record_present = _record_exists(decision)
+    approval_open = _approval_open(decision)
+    top_risk = _dominant_risk_name(decision)
+    top_process = _top_process_name(decision)
+
+    return {
+        "statement": statement,
+        "readiness_label": readiness.get("label"),
+        "status": getattr(decision, "status", "draft"),
+        "next_step_label": next_step.get("label"),
+        "next_step_reason": next_step.get("reason"),
+        "strongest_option_label": strongest.get("variant_name") if strongest else None,
+        "missing_evidence": list(readiness.get("missing") or []),
+        "summary_cards": [
+            {
+                "key": "risks",
+                "title": translate("decision_briefing.risks.title", language=language),
+                "count": total_risks,
+                "primary": top_risk or translate("decision_briefing.risks.empty", language=language),
+                "status": translate("decision_briefing.risks.validation_open", language=language) if total_risks else translate("decision_briefing.risks.empty", language=language),
+                "href": "#risks",
+            },
+            {
+                "key": "scenarios",
+                "title": translate("decision_briefing.scenarios.title", language=language),
+                "count": scenarios,
+                "primary": f"{simulations} {translate('decision_briefing.scenarios.simulated', language=language)}",
+                "status": strongest.get("variant_name") if strongest else translate("decision_briefing.scenarios.empty", language=language),
+                "href": "#scenarios",
+            },
+            {
+                "key": "processes",
+                "title": translate("decision_briefing.processes.title", language=language),
+                "count": processes,
+                "primary": top_process or translate("decision_briefing.processes.empty", language=language),
+                "status": translate("decision_narrative.circumstances.kicker", language=language),
+                "href": "#process-context",
+            },
+            {
+                "key": "governance",
+                "title": translate("decision_briefing.governance.title", language=language),
+                "count": len(getattr(decision, "approval_records", []) or []),
+                "primary": translate("decision_briefing.governance.approval_open", language=language) if approval_open else translate("decision_insight.readiness.state.governance_ready", language=language),
+                "status": translate("decision_briefing.governance.record_present", language=language) if record_present else translate("decision_briefing.governance.record_missing", language=language),
+                "href": "#governance",
+            },
+            {
+                "key": "observations",
+                "title": translate("decision_briefing.observations.title", language=language),
+                "count": observations,
+                "primary": translate("decision_briefing.no_observations", language=language) if observations == 0 else str(observations),
+                "status": translate("decision_briefing.no_reassessment", language=language) if observations == 0 else translate("decision_briefing.reassessment.title", language=language),
+                "href": "#observation",
+            },
+        ],
+    }

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, session
 
 from app.config import get_config
 from app.domains.context.routes import bp as context_bp
@@ -14,7 +14,7 @@ from app.web.routes import api as core_bp
 from app.web.ui_routes import bp as ui_bp
 from app.demo.seed import seed_golden_demo
 from app.shared.database import session_scope
-from app.shared.i18n import t
+from app.shared.i18n import translate
 
 
 def create_app(config_class=None):
@@ -39,9 +39,20 @@ def create_app(config_class=None):
             app.logger.info("Golden demo seed available", extra={"decision_id": decision.id})
         print("Golden demo seed available")
 
+    @app.before_request
+    def apply_language_selection():
+        selected_language = request.args.get("lang")
+        if selected_language in {"de", "en"}:
+            session["language"] = selected_language
+
     @app.context_processor
     def inject_i18n():
-        return {"t": t}
+        language = session.get("language", "de")
+
+        def localized_translate(key: str, **kwargs):
+            return translate(key, language=language, **kwargs)
+
+        return {"t": localized_translate, "current_language": language}
 
     @app.teardown_appcontext
     def remove_session(exception=None):

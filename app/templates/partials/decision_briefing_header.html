@@ -1,0 +1,19 @@
+<section id="decision-briefing-header" class="section decision-briefing-header" aria-label="{{ t('decision_briefing.title') }}">
+  <div class="card briefing-hero">
+    <div>
+      <div class="eyebrow">{{ t('decision_briefing.eyebrow') }}</div>
+      <h1>{{ decision.title }}</h1>
+      <p class="lead">{{ decision_briefing.statement }}</p>
+      <div class="briefing-meta">
+        <span class="metric-pill">{{ t('decision_briefing.status.label') }}: {{ status_labels.get(decision.status, decision.status|replace('_', ' ')|title) }}</span>
+        <span class="metric-pill">{{ t('decision_briefing.readiness') }}: {{ decision_briefing.readiness_label }}</span>
+      </div>
+    </div>
+    <div class="briefing-next-step">
+      <h2>{{ t('decision_briefing.next_step') }}</h2>
+      <p><strong>{{ decision_briefing.next_step_label }}</strong></p>
+      <p class="muted">{{ decision_briefing.next_step_reason }}</p>
+      <p class="muted"><strong>{{ t('decision_briefing.strongest_option.label') }}:</strong> {{ decision_briefing.strongest_option_label or t('decision_briefing.strongest_option.empty') }}</p>
+    </div>
+  </div>
+</section>

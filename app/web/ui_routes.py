@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from sqlalchemy import text
 
-from flask import Blueprint, current_app, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, redirect, render_template, request, session, url_for
 
 from app.domains.assessment.models import RiskAssessment, SimulationRun
 from app.demo.seed import DEMO_DECISION_TITLE, seed_golden_demo
@@ -20,7 +20,8 @@ from app.domains.context.types import CONTEXT_TYPE_LABELS, CONTEXT_TYPES, CONFID
 from app.domains.assessment.service import RiskAssessmentService
 from app.domains.decision.models import Decision
 from app.domains.decision.service import DecisionService
-from app.domains.decision.decision_insight_service import build_decision_insight_summary
+from app.domains.decision.decision_insight_service import build_decision_insight_summary, build_decision_briefing_view_model
+from app.domains.decision.decision_narrative_service import build_decision_narrative
 from app.domains.decision.status import DECISION_STATUS_LABELS, DECISION_STATUS_DEFINITIONS, allowed_next_statuses, normalize_decision_status
 from app.domains.governance.models import ApprovalRecord
 from app.domains.governance.service import GovernanceService
@@ -80,6 +81,11 @@ class UiMessage:
     level: str
     text: str
 
+
+
+
+def _current_language() -> str:
+    return session.get("language", "de")
 
 def _created_by() -> str:
     return (request.form.get("created_by") or request.headers.get("X-Kairon-User") or "system").strip() or "system"
@@ -531,7 +537,9 @@ def _decision_insight_adjustments() -> dict:
 def _workspace_view_model(decision: Decision) -> dict:
     rows = _comparison_rows(decision)
     latest_record = sorted(decision.decision_records, key=lambda record: record.created_at, reverse=True)[0] if decision.decision_records else None
+    language = _current_language()
     relationship_awareness = build_decision_relationship_awareness(decision)
+    decision_insight = build_decision_insight_summary(decision, adjusted_values=_decision_insight_adjustments(), language=language)
     return {
         "decision": decision,
         "decision_card": _decision_card_view_model(decision),
@@ -552,12 +560,12 @@ def _workspace_view_model(decision: Decision) -> dict:
         "has_simulations": any(row["simulation"] for row in rows),
         "has_impacts": any(row["impact"] for row in rows),
         "relationship_awareness": relationship_awareness,
-        "decision_insight": build_decision_insight_summary(decision, adjusted_values=_decision_insight_adjustments()),
+        "decision_insight": decision_insight,
+        "decision_briefing": build_decision_briefing_view_model(decision, insight=decision_insight, language=language),
+        "decision_narrative": build_decision_narrative(decision),
         "decision_workspace_header": _decision_workspace_header(decision),
         "expected_future": _expected_future(decision, rows),
         "reassessment_workspace": _reassessment_workspace(decision),
-
-        "t": translate,
     }
 
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="{{ current_language or 'de' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,19 +13,25 @@
         <img class="logo-mark" src="{{ url_for('static', filename='img/kairon-logo.jpg') }}" alt="KAIRON / Sophilius Logo">
         <span>
           <span class="brand-title">KAIRON</span><br>
-          <span class="brand-subtitle">Decision Intelligence Workspace</span>
+          <span class="brand-subtitle">{{ t('brand.subtitle') }}</span>
         </span>
       </a>
-      <nav class="nav" aria-label="Hauptnavigation">
-        <a class="{{ 'active' if active_nav == 'decisions' else '' }}" href="{{ url_for('ui.home') }}">Decisions</a>
-        <a class="{{ 'active' if active_nav == 'processes' else '' }}" href="{{ url_for('ui.process_landscape') }}">Process Landscape</a>
-        <a class="{{ 'active' if active_nav == 'scenarios' else '' }}" href="{{ url_for('ui.scenarios_overview') }}">Scenarios</a>
-        <a class="{{ 'active' if active_nav == 'compare' else '' }}" href="{{ url_for('ui.compare_overview') }}">Compare</a>
-        <a class="{{ 'active' if active_nav == 'governance' else '' }}" href="{{ url_for('ui.governance_overview') }}">Governance</a>
-        <a class="{{ 'active' if active_nav == 'analytics' else '' }}" href="{{ url_for('ui.analytics_overview') }}">Analytics</a>
-        <a class="{{ 'active' if active_nav == 'system' else '' }}" href="{{ url_for('ui.system_status') }}">System Status</a>
-        <a href="{{ url_for('api.index') }}">API</a>
+      <nav class="nav" aria-label="{{ t('nav.decisions') }}">
+        <a class="{{ 'active' if active_nav == 'decisions' else '' }}" href="{{ url_for('ui.home') }}">{{ t('nav.decisions') }}</a>
+        <a class="{{ 'active' if active_nav == 'processes' else '' }}" href="{{ url_for('ui.process_landscape') }}">{{ t('nav.processes') }}</a>
+        <a class="{{ 'active' if active_nav == 'scenarios' else '' }}" href="{{ url_for('ui.scenarios_overview') }}">{{ t('nav.scenarios') }}</a>
+        <a class="{{ 'active' if active_nav == 'compare' else '' }}" href="{{ url_for('ui.compare_overview') }}">{{ t('nav.compare') }}</a>
+        <a class="{{ 'active' if active_nav == 'governance' else '' }}" href="{{ url_for('ui.governance_overview') }}">{{ t('nav.governance') }}</a>
+        <a class="{{ 'active' if active_nav == 'analytics' else '' }}" href="{{ url_for('ui.analytics_overview') }}">{{ t('nav.analytics') }}</a>
+        <a class="{{ 'active' if active_nav == 'system' else '' }}" href="{{ url_for('ui.system_status') }}">{{ t('nav.system') }}</a>
+        <a href="{{ url_for('api.index') }}">{{ t('nav.api') }}</a>
       </nav>
+      <div class="language-switch" aria-label="{{ t('app.language.switch') }}">
+        <span>{{ t('app.language.current') }}</span>
+        <a class="{{ 'active' if current_language == 'de' else '' }}" href="{{ request.path }}?lang=de">{{ t('app.language.de') }}</a>
+        <span aria-hidden="true">|</span>
+        <a class="{{ 'active' if current_language == 'en' else '' }}" href="{{ request.path }}?lang=en">{{ t('app.language.en') }}</a>
+      </div>
     </header>
     <main class="container">
       {% if message %}

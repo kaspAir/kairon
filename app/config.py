@@ -16,6 +16,7 @@ class BaseConfig:
     SQL_ECHO = os.getenv("SQL_ECHO", "false").lower() == "true"
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     JSON_SORT_KEYS = False
+    SECRET_KEY = os.getenv("SECRET_KEY", "kairon-dev-secret")
 
 
 class DevelopmentConfig(BaseConfig):

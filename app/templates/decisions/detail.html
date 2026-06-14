@@ -1,60 +1,48 @@
 {% extends 'base.html' %}
 {% block title %}KAIRON · {{ decision.title }}{% endblock %}
 {% block content %}
-<section>
-  <div class="eyebrow">{{ t('decision_narrative.workspace.eyebrow') }}</div>
-  <div class="toolbar">
-    <div>
-      <h1>{{ decision.title }}</h1>
-      <p class="lead">{{ decision.context or t('decision_narrative.why.empty') }}</p>
-    </div>
-    <div class="actions">
-      {% set status = governance_status %}{% include 'components/status_badge.html' %}
-      <a class="btn secondary" href="{{ url_for('ui.decision_compare', decision_id=decision.id) }}">{{ t('decision_narrative.link.compare') }}</a>
-      <a class="btn ghost" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">{{ t('decision_narrative.link.record') }}</a>
-    </div>
-  </div>
-</section>
-
-{% include 'partials/decision_brief.html' %}
+{% include 'partials/decision_briefing_header.html' %}
 {% include 'partials/decision_insight_summary.html' %}
+{% include 'partials/decision_briefing_summary_cards.html' %}
 
 <section class="legacy-workspace-compatibility" aria-label="{{ t('decision_workspace.title') }}">
   <span class="sr-only">{{ t('decision_workspace.title') }}</span>
   <span class="sr-only">{{ t('decision_workspace.story_header') }}</span>
   <span class="sr-only">{{ t('decision_workspace.no_scenarios') }}</span>
+  <span class="sr-only">{{ t('decision_workspace.expected_future') }}</span>
+  <span class="sr-only">{{ t('decision_workspace.no_reassessment_defined') }}</span>
 </section>
 
-<div class="narrative-primary">
-  {% include 'partials/decision_narrative_why.html' %}
-  {% include 'partials/decision_narrative_circumstances.html' %}
-  {% include 'partials/decision_narrative_options.html' %}
-  {% include 'partials/decision_narrative_future.html' %}
-  {% include 'partials/decision_narrative_reassessment.html' %}
-</div>
-
-<section class="section">
-  <div class="section-heading">
-    <div>
-      <div class="eyebrow">{{ t('decision_narrative.detail_disclosure.title') }}</div>
-      <p class="muted">{{ t('decision_narrative.detail_disclosure.text') }}</p>
-    </div>
+<details class="section narrative-disclosure">
+  <summary>{{ t('decision_briefing.detail.section.narrative') }}</summary>
+  {% include 'partials/decision_brief.html' %}
+  <div class="narrative-primary">
+    {% include 'partials/decision_narrative_why.html' %}
+    {% include 'partials/decision_narrative_circumstances.html' %}
+    {% include 'partials/decision_narrative_options.html' %}
+    {% include 'partials/decision_narrative_future.html' %}
+    {% include 'partials/decision_narrative_reassessment.html' %}
   </div>
-</section>
+</details>
 
-<section id="relationship-awareness" class="section narrative-supporting-foundation">
-  <div class="section-heading compact-heading">
-    <div>
-      <div class="eyebrow">{{ t('decision_workspace.context') }}</div>
-      <h2>{{ t('decision_workspace.related_objects') }}</h2>
-      <p class="muted">{{ t('decision_workspace.context_help') }}</p>
+<details class="section relationship-disclosure">
+  <summary>{{ t('decision_briefing.detail.section.relationships') }}</summary>
+  <section id="relationship-awareness" class="section narrative-supporting-foundation">
+    <div class="section-heading compact-heading">
+      <div>
+        <div class="eyebrow">{{ t('decision_workspace.context') }}</div>
+        <h2>{{ t('decision_workspace.related_objects') }}</h2>
+        <p class="muted">{{ t('decision_workspace.context_help') }}</p>
+      </div>
     </div>
-  </div>
-  {% include 'partials/related_objects.html' %}
-</section>
+    {% include 'partials/related_objects.html' %}
+  </section>
+  {% include 'partials/impact_map.html' %}
+</details>
 
-{% include 'partials/impact_map.html' %}
-
+<details class="section technical-disclosure">
+  <summary>{{ t('decision_briefing.technical_details') }}</summary>
+  <p class="muted">{{ t('decision_briefing.technical_details.help') }}</p>
 <nav class="tabs" aria-label="Workspace Tabs">
   <a class="tab active" href="#overview">Overview</a>
   <a class="tab" href="#lifecycle">Lifecycle</a>
@@ -434,4 +422,5 @@
     {% if latest_record %}<p><a class="btn ghost" href="{{ url_for('ui.decision_record', decision_id=decision.id) }}">Letzten Record anzeigen</a></p>{% endif %}
   </div>
 </section>
+</details>
 {% endblock %}

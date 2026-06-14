@@ -397,3 +397,66 @@ details summary { cursor: pointer; font-weight: 850; color: var(--color-primary)
 .insight-lever-form { margin-top: var(--spacing-md); }
 .lever-field label { display: block; font-size: .82rem; font-weight: 750; color: var(--color-muted); margin-bottom: .35rem; }
 .lever-field input, .lever-field select { width: 100%; }
+
+/* Decision Briefing Workspace */
+.language-switch {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.86rem;
+  opacity: 0.92;
+}
+.language-switch a { color: #fff; opacity: 0.78; }
+.language-switch a.active { opacity: 1; text-decoration: underline; }
+.briefing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, .8fr);
+  gap: var(--spacing-lg);
+  align-items: start;
+  background: linear-gradient(135deg, #FFFFFF 0%, #EEF4FA 100%);
+}
+.briefing-meta { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-top: var(--spacing-md); }
+.briefing-next-step {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-md);
+}
+.briefing-summary-card { min-height: 210px; }
+.briefing-summary-card .metric-value { font-size: 1.65rem; }
+.narrative-disclosure,
+.relationship-disclosure,
+.technical-disclosure,
+.insight-levers {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: var(--spacing-lg);
+}
+.narrative-disclosure > summary,
+.relationship-disclosure > summary,
+.technical-disclosure > summary,
+.insight-levers > summary {
+  list-style: none;
+}
+.narrative-disclosure > summary::-webkit-details-marker,
+.relationship-disclosure > summary::-webkit-details-marker,
+.technical-disclosure > summary::-webkit-details-marker,
+.insight-levers > summary::-webkit-details-marker { display: none; }
+.narrative-disclosure > summary::after,
+.relationship-disclosure > summary::after,
+.technical-disclosure > summary::after,
+.insight-levers > summary::after {
+  content: " +";
+  color: var(--color-secondary);
+}
+.narrative-disclosure[open] > summary::after,
+.relationship-disclosure[open] > summary::after,
+.technical-disclosure[open] > summary::after,
+.insight-levers[open] > summary::after { content: " -"; }
+@media (max-width: 980px) {
+  .briefing-hero { grid-template-columns: 1fr; }
+}

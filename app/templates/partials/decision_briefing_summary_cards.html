@@ -1,0 +1,18 @@
+<section id="decision-briefing-summary-cards" class="section decision-briefing-summary-cards" aria-label="{{ t('decision_briefing.summary_cards') }}">
+  <div class="section-heading compact-heading">
+    <div>
+      <div class="eyebrow">{{ t('decision_briefing.summary_cards') }}</div>
+    </div>
+  </div>
+  <div class="grid five briefing-card-grid">
+    {% for card in decision_briefing.summary_cards %}
+      <article class="card compact briefing-summary-card">
+        <h3>{{ card.title }}</h3>
+        <div class="metric-value">{{ card.count }}</div>
+        <p><strong>{{ card.primary }}</strong></p>
+        <p class="muted">{{ card.status }}</p>
+        <p><a class="btn small ghost" href="{{ card.href }}">{{ t('decision_briefing.open_details') }}</a></p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
